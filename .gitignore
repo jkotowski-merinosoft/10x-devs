@@ -26,3 +26,13 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+
+#lekcje z kursu
+/kurs/
+
+#skille 10x-
+.claude/**/10x-*
+.cursor/**/10x-*
+.github/**/10x-*
+.agents/**/10x-*
