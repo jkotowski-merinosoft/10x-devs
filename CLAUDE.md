@@ -53,3 +53,18 @@ Full server-side rendering (`output: "server"` in astro.config.mjs). All pages a
 ## CI
 
 GitHub Actions workflow (`.github/workflows/ci.yml`) runs lint + build on every push and PR to master. Requires `SUPABASE_URL` and `SUPABASE_KEY` repository secrets for the build step.
+
+## Verification
+
+This repo has no unit or e2e runner (no Vitest, Jest, or Playwright). Do not add a test framework or `*.test.ts` / `*.spec.ts` files unless the user asks.
+
+Prove a change with the checks already in the repo:
+
+- `npm run lint` — ESLint, type-checked rules
+- `npx astro check` — Astro/TypeScript check (same command as CI)
+- `npm run build` — SSR build via `@astrojs/cloudflare`
+- `npm run smoke` — `scripts/smoke.mjs` against a running server. `BASE_URL` defaults to `http://localhost:4321`.
+
+`scripts/smoke.mjs` is dependency-free. It checks, in order: `/` returns 200; anonymous `/dashboard` redirects to `/auth/signin`; `POST /api/auth/signup` redirects to `/auth/confirm-email`; wrong password on `POST /api/auth/signin` redirects to `/auth/signin?error=`; correct password redirects to `/`; signed-in `/dashboard` returns 200; `POST /api/auth/signout` redirects to `/`; `/dashboard` redirects again after signout.
+
+CI (`.github/workflows/ci.yml`) runs lint, `astro check`, build, and this smoke test against `astro preview` with local Supabase. When you change auth, `src/middleware.ts`, or the Cloudflare adapter, run that same loop. Do not treat a green lint as a substitute for `npm run smoke`.
