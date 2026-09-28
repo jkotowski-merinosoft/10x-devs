@@ -36,3 +36,6 @@ pnpm-debug.log*
 .cursor/**/10x-*
 .github/**/10x-*
 .agents/**/10x-*
+
+# lokalny stan CLI: hashe skilli rozjeżdżają się między maszynami
+**/.10x-cli-manifest.json
