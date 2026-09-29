@@ -9,11 +9,12 @@ import cloudflare from "@astrojs/cloudflare";
 // https://astro.build/config
 export default defineConfig({
   output: "server",
+  session: false,
   integrations: [react(), sitemap()],
   vite: {
     plugins: [tailwindcss()],
   },
-  adapter: cloudflare(),
+  adapter: cloudflare({ imageService: "passthrough" }),
   env: {
     schema: {
       SUPABASE_URL: envField.string({ context: "server", access: "secret", optional: true }),
