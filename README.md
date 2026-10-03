@@ -112,7 +112,7 @@ npx supabase stop
 
 The local Studio UI is available at `http://localhost:54323`.
 
-No database tables or migrations are required — this project uses Supabase Auth's built-in `auth.users` table only.
+The database schema (`public.profiles` with user roles and `public.matches`) is defined by the SQL migrations in `supabase/migrations/`. `npx supabase start` applies them to the local stack; run `npx supabase db reset` to re-apply them after pulling new migrations.
 
 ### Using a cloud Supabase project instead
 
@@ -126,6 +126,21 @@ If you prefer to use a hosted Supabase project, add these variables to your `.en
 ```
 SUPABASE_URL=https://<project-ref>.supabase.co
 SUPABASE_KEY=<anon-key>
+```
+
+Apply the migrations to the cloud project with:
+
+```bash
+npx supabase link --project-ref <project-ref>
+npx supabase db push
+```
+
+### Roles
+
+Every account gets a `public.profiles` row with the `employee` role. Only organizers can add matches. There is no in-app way to change a role — grant the organizer role with SQL (Supabase SQL editor or `psql`):
+
+```sql
+update public.profiles set role = 'organizer' where user_id = (select id from auth.users where email = '<email>');
 ```
 
 ### Email confirmation in local development
@@ -176,7 +191,23 @@ npm run dev            # or: npm run build && npm run preview
 BASE_URL=http://localhost:4321 npm run smoke
 ```
 
-It needs a reachable Supabase instance (local or cloud) with email confirmation disabled.
+It needs a reachable Supabase instance (local or cloud) with email confirmation disabled. It also checks `/matches` and `POST /api/matches` for anonymous users and for an employee (list visible, no add form, adding rejected).
+
+The organizer steps (admin creates an organizer account, the organizer adds a match, the employee sees it, and RLS rejects a direct insert by the employee) need extra shell variables. They are used only by the script — never put the service role key in `.env` or `.dev.vars`:
+
+| Variable                    | Description                                                       |
+| --------------------------- | ----------------------------------------------------------------- |
+| `SUPABASE_URL`              | Supabase API URL (`API_URL` from `npx supabase status -o env`)    |
+| `SUPABASE_KEY`              | anon key (`ANON_KEY`)                                             |
+| `SUPABASE_SERVICE_ROLE_KEY` | service role key (`SERVICE_ROLE_KEY`)                             |
+| `SMOKE_REQUIRE_ADMIN`       | `1` turns missing keys into `FAIL` instead of `SKIP` (CI uses it) |
+
+```bash
+eval "$(npx supabase status -o env | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=')"
+SUPABASE_URL="$API_URL" SUPABASE_KEY="$ANON_KEY" SUPABASE_SERVICE_ROLE_KEY="$SERVICE_ROLE_KEY" npm run smoke
+```
+
+Without these variables the organizer steps print `SKIP` and the smoke still exits with code 0.
 
 > **Note:** this script exists primarily to guard the development of the starter itself — it is a fast sanity check that dependency upgrades did not break the build, the Cloudflare adapter or the Supabase auth flow. It is **not** a substitute for a real test suite. Once you build your own product on top of this starter, add proper tests (unit, integration, end-to-end) suited to your application.
 
@@ -185,7 +216,7 @@ It needs a reachable Supabase instance (local or cloud) with email confirmation 
 GitHub Actions runs two jobs on every push and PR to `master`:
 
 - **ci** — lint, `astro check` and build. Configure `SUPABASE_URL` and `SUPABASE_KEY` as repository secrets for the build step.
-- **smoke** — starts a local Supabase via the Supabase CLI, builds, serves the production preview on the Cloudflare runtime and runs `npm run smoke` against it. No secrets required.
+- **smoke** — starts a local Supabase via the Supabase CLI, builds, serves the production preview on the Cloudflare runtime and runs `npm run smoke` against it, including the organizer steps (with the local stack's service role key passed only to the smoke step). No secrets required.
 
 ## License
 

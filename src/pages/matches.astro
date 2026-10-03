@@ -1,0 +1,77 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Topbar from "@/components/Topbar.astro";
+import { createClient } from "@/lib/supabase";
+import { listMatches } from "@/lib/services/matches";
+import { formatWarsaw } from "@/lib/time";
+import type { Match } from "@/types";
+
+const { role } = Astro.locals;
+const isOrganizer = role === "organizer";
+const error = Astro.url.searchParams.get("error");
+
+const supabase = createClient(Astro.request.headers, Astro.cookies);
+const matches: Match[] = supabase ? await listMatches(supabase) : [];
+
+const inputClass =
+  "w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-blue-100/40 focus:border-purple-300 focus:outline-none";
+---
+
+<Layout title="Mecze">
+  <div class="bg-cosmic min-h-screen p-4">
+    <div class="mx-auto w-full max-w-2xl">
+      <Topbar />
+      <div class="rounded-2xl border border-white/10 bg-white/10 p-8 text-white backdrop-blur-xl">
+        <h1 class="mb-6 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-3xl font-bold text-transparent">
+          Mecze
+        </h1>
+
+        {error && (
+          <p class="mb-6 rounded-lg border border-red-500/30 bg-red-900/30 px-3 py-2 text-sm text-red-300" role="alert">
+            {error}
+          </p>
+        )}
+
+        {isOrganizer && (
+          <form method="POST" action="/api/matches" class="mb-8 grid gap-4 sm:grid-cols-2">
+            <label class="flex flex-col gap-1 text-sm text-blue-100/80">
+              Strona A
+              <input type="text" name="side_a" required maxlength="100" class:list={inputClass} />
+            </label>
+            <label class="flex flex-col gap-1 text-sm text-blue-100/80">
+              Strona B
+              <input type="text" name="side_b" required maxlength="100" class:list={inputClass} />
+            </label>
+            <label class="flex flex-col gap-1 text-sm text-blue-100/80 sm:col-span-2">
+              Rozpoczęcie (czas warszawski)
+              <input type="datetime-local" name="starts_at" required class:list={[inputClass, "[color-scheme:dark]"]} />
+            </label>
+            <div class="sm:col-span-2">
+              <button
+                type="submit"
+                class="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm transition-colors hover:bg-white/20"
+              >
+                Dodaj mecz
+              </button>
+            </div>
+          </form>
+        )}
+
+        {matches.length === 0 ? (
+          <p class="text-blue-100/60">Brak meczów</p>
+        ) : (
+          <ul class="divide-y divide-white/10">
+            {matches.map((match) => (
+              <li class="flex items-center justify-between gap-4 py-3">
+                <span class="font-semibold text-white">
+                  {match.side_a} – {match.side_b}
+                </span>
+                <span class="shrink-0 text-sm text-blue-100/70">{formatWarsaw(match.starts_at)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  </div>
+</Layout>
