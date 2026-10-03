@@ -356,11 +356,11 @@ Pierwsza migracja w repo. Lokalnie: `npx supabase db reset` (albo świeże `supa
 
 #### Automated
 
-- [x] 3.1 Lokalnie z kluczem service role wszystkie kroki smoke mają `PASS`, w tym organizatora: `SUPABASE_URL=… SUPABASE_SERVICE_ROLE_KEY=… npm run smoke`
-- [x] 3.2 Bez klucza service role kroki organizatora mają `SKIP`, a smoke kończy się kodem 0: `npm run smoke`
-- [x] 3.3 Lint przechodzi: `npm run lint`
-- [ ] 3.4 Job `smoke` w CI przechodzi na PR z tą zmianą
+- [x] 3.1 Lokalnie z kluczem service role wszystkie kroki smoke mają `PASS`, w tym organizatora: `SUPABASE_URL=… SUPABASE_SERVICE_ROLE_KEY=… npm run smoke` — 2ec19dd
+- [x] 3.2 Bez klucza service role kroki organizatora mają `SKIP`, a smoke kończy się kodem 0: `npm run smoke` — 2ec19dd
+- [x] 3.3 Lint przechodzi: `npm run lint` — 2ec19dd
+- [x] 3.4 Job `smoke` w CI przechodzi na PR z tą zmianą — 2ec19dd
 
 #### Manual
 
-- [ ] 3.5 Log CI pokazuje `PASS` (nie `SKIP`) dla kroków organizatora, a klucz service role nie pojawia się w `.env` ani w logu
+- [x] 3.5 Log CI pokazuje `PASS` (nie `SKIP`) dla kroków organizatora, a klucz service role nie pojawia się w `.env` ani w logu — 2ec19dd
