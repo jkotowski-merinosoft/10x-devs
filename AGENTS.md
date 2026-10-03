@@ -22,7 +22,7 @@ Node: @.nvmrc.
 
 - Auth APIs in `src/pages/api/auth/` (@src/pages/api/auth/signin.ts).
 - `src/components/` UI; add with `npx shadcn@latest add <name>` (@components.json).
-- `supabase/` is CLI config only; no SQL migrations are committed (@README.md).
+- `supabase/migrations/` holds committed SQL migrations; apply them locally with `npx supabase start` / `npx supabase db reset` (@README.md).
 
 ## Style
 

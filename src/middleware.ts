@@ -1,5 +1,6 @@
 import { defineMiddleware } from "astro:middleware";
 import { createClient } from "@/lib/supabase";
+import type { Role } from "@/types";
 
 const PROTECTED_ROUTES = ["/dashboard"];
 
@@ -11,8 +12,21 @@ export const onRequest = defineMiddleware(async (context, next) => {
       data: { user },
     } = await supabase.auth.getUser();
     context.locals.user = user ?? null;
+
+    if (user) {
+      // Missing profile row or a query error falls back to the least-privileged role.
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("user_id", user.id)
+        .maybeSingle<{ role: Role }>();
+      context.locals.role = !error && profile?.role === "organizer" ? "organizer" : "employee";
+    } else {
+      context.locals.role = null;
+    }
   } else {
     context.locals.user = null;
+    context.locals.role = null;
   }
 
   if (PROTECTED_ROUTES.some((route) => context.url.pathname.startsWith(route))) {

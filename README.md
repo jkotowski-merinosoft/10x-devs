@@ -112,7 +112,7 @@ npx supabase stop
 
 The local Studio UI is available at `http://localhost:54323`.
 
-No database tables or migrations are required — this project uses Supabase Auth's built-in `auth.users` table only.
+The database schema (`public.profiles` with user roles and `public.matches`) is defined by the SQL migrations in `supabase/migrations/`. `npx supabase start` applies them to the local stack; run `npx supabase db reset` to re-apply them after pulling new migrations.
 
 ### Using a cloud Supabase project instead
 
@@ -126,6 +126,21 @@ If you prefer to use a hosted Supabase project, add these variables to your `.en
 ```
 SUPABASE_URL=https://<project-ref>.supabase.co
 SUPABASE_KEY=<anon-key>
+```
+
+Apply the migrations to the cloud project with:
+
+```bash
+npx supabase link --project-ref <project-ref>
+npx supabase db push
+```
+
+### Roles
+
+Every account gets a `public.profiles` row with the `employee` role. Only organizers can add matches. There is no in-app way to change a role — grant the organizer role with SQL (Supabase SQL editor or `psql`):
+
+```sql
+update public.profiles set role = 'organizer' where user_id = (select id from auth.users where email = '<email>');
 ```
 
 ### Email confirmation in local development

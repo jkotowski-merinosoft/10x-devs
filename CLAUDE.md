@@ -33,7 +33,7 @@ Full server-side rendering (`output: "server"` in astro.config.mjs). All pages a
 
 - **Path alias**: `@/*` maps to `./src/*` (tsconfig paths).
 - **API routes**: use uppercase `GET`, `POST` exports; validate input with zod.
-- **Supabase**: Auth uses the built-in `auth.users` table only (@README.md).
+- **Supabase**: App schema lives in `supabase/migrations/`; user roles are in `public.profiles` (@README.md).
 - **React**: extract hooks to `src/components/hooks/`.
 - **Services/helpers** go in `src/lib/` (or `src/lib/services/` for extracted business logic).
 - **Shared types** (entities, DTOs) go in `src/types.ts`.

@@ -17,6 +17,9 @@ pnpm-debug.log*
 .env
 .env.production
 
+# private local notes (logins); not loaded by the app
+.local/
+
 # cloudflare
 .dev.vars
 .wrangler/
