@@ -323,34 +323,34 @@ Pierwsza migracja w repo. Lokalnie: `npx supabase db reset` (albo świeże `supa
 
 #### Automated
 
-- [x] 1.1 Migracja stosuje się na czysto: `npx supabase db reset`
-- [x] 1.2 Type check przechodzi: `npx astro check`
-- [x] 1.3 Lint przechodzi: `npm run lint`
-- [x] 1.4 Build przechodzi: `npm run build`
-- [x] 1.5 Istniejący smoke przechodzi bez regresji: `npm run smoke`
+- [x] 1.1 Migracja stosuje się na czysto: `npx supabase db reset` — 5d78514
+- [x] 1.2 Type check przechodzi: `npx astro check` — 5d78514
+- [x] 1.3 Lint przechodzi: `npm run lint` — 5d78514
+- [x] 1.4 Build przechodzi: `npm run build` — 5d78514
+- [x] 1.5 Istniejący smoke przechodzi bez regresji: `npm run smoke` — 5d78514
 
 #### Manual
 
-- [x] 1.6 W Studio nowo zarejestrowane konto ma wiersz w `profiles` z `role = 'employee'`
-- [x] 1.7 Po `UPDATE` z README konto ma `role = 'organizer'`, a zalogowany pracownik nie może przez REST Supabase zmienić swojej roli (brak polityki update)
+- [x] 1.6 W Studio nowo zarejestrowane konto ma wiersz w `profiles` z `role = 'employee'` — 5d78514
+- [x] 1.7 Po `UPDATE` z README konto ma `role = 'organizer'`, a zalogowany pracownik nie może przez REST Supabase zmienić swojej roli (brak polityki update) — 5d78514
 
 ### Phase 2: Dodawanie i lista meczów
 
 #### Automated
 
-- [ ] 2.1 Type check przechodzi: `npx astro check`
-- [ ] 2.2 Lint przechodzi: `npm run lint`
-- [ ] 2.3 Build przechodzi: `npm run build`
-- [ ] 2.4 Istniejący smoke przechodzi: `npm run smoke`
+- [x] 2.1 Type check przechodzi: `npx astro check`
+- [x] 2.2 Lint przechodzi: `npm run lint`
+- [x] 2.3 Build przechodzi: `npm run build`
+- [x] 2.4 Istniejący smoke przechodzi: `npm run smoke`
 
 #### Manual
 
-- [ ] 2.5 Organizator dodaje „Polska” – „Niemcy”, `2026-10-10 20:45`. W Studio `starts_at = 2026-10-10 18:45:00+00`, a na liście „10.10.2026, 20:45”.
-- [ ] 2.6 Mecz dodany na `2026-12-10 20:45` ma w bazie `19:45:00+00` (CET) i wyświetla się jako 20:45
-- [ ] 2.7 Pracownik widzi ten sam mecz na `/matches`, nie widzi formularza, a wysłany ręcznie `POST /api/matches` wraca z `?error=` i nie tworzy meczu
-- [ ] 2.8 Dwa mecze z tym samym startem pokazują się w kolejności dodania, a mecz z datą w przeszłości daje się dodać i zostaje na liście
-- [ ] 2.9 Puste strony, identyczne strony („Polska”/„polska”) i godzina nieistniejąca (`2027-03-28 02:30`) dają czytelny błąd bez zapisu
-- [ ] 2.10 Anonim na `/matches` jest przekierowany do `/auth/signin`
+- [x] 2.5 Organizator dodaje „Polska” – „Niemcy”, `2026-10-10 20:45`. W Studio `starts_at = 2026-10-10 18:45:00+00`, a na liście „10.10.2026, 20:45”.
+- [x] 2.6 Mecz dodany na `2026-12-10 20:45` ma w bazie `19:45:00+00` (CET) i wyświetla się jako 20:45
+- [x] 2.7 Pracownik widzi ten sam mecz na `/matches`, nie widzi formularza, a wysłany ręcznie `POST /api/matches` wraca z `?error=` i nie tworzy meczu
+- [x] 2.8 Dwa mecze z tym samym startem pokazują się w kolejności dodania, a mecz z datą w przeszłości daje się dodać i zostaje na liście
+- [x] 2.9 Puste strony, identyczne strony („Polska”/„polska”) i godzina nieistniejąca (`2027-03-28 02:30`) dają czytelny błąd bez zapisu
+- [x] 2.10 Anonim na `/matches` jest przekierowany do `/auth/signin`
 
 ### Phase 3: Smoke i CI
 
