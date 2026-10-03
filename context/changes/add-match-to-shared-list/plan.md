@@ -338,27 +338,27 @@ Pierwsza migracja w repo. Lokalnie: `npx supabase db reset` (albo świeże `supa
 
 #### Automated
 
-- [x] 2.1 Type check przechodzi: `npx astro check`
-- [x] 2.2 Lint przechodzi: `npm run lint`
-- [x] 2.3 Build przechodzi: `npm run build`
-- [x] 2.4 Istniejący smoke przechodzi: `npm run smoke`
+- [x] 2.1 Type check przechodzi: `npx astro check` — b97b305
+- [x] 2.2 Lint przechodzi: `npm run lint` — b97b305
+- [x] 2.3 Build przechodzi: `npm run build` — b97b305
+- [x] 2.4 Istniejący smoke przechodzi: `npm run smoke` — b97b305
 
 #### Manual
 
-- [x] 2.5 Organizator dodaje „Polska” – „Niemcy”, `2026-10-10 20:45`. W Studio `starts_at = 2026-10-10 18:45:00+00`, a na liście „10.10.2026, 20:45”.
-- [x] 2.6 Mecz dodany na `2026-12-10 20:45` ma w bazie `19:45:00+00` (CET) i wyświetla się jako 20:45
-- [x] 2.7 Pracownik widzi ten sam mecz na `/matches`, nie widzi formularza, a wysłany ręcznie `POST /api/matches` wraca z `?error=` i nie tworzy meczu
-- [x] 2.8 Dwa mecze z tym samym startem pokazują się w kolejności dodania, a mecz z datą w przeszłości daje się dodać i zostaje na liście
-- [x] 2.9 Puste strony, identyczne strony („Polska”/„polska”) i godzina nieistniejąca (`2027-03-28 02:30`) dają czytelny błąd bez zapisu
-- [x] 2.10 Anonim na `/matches` jest przekierowany do `/auth/signin`
+- [x] 2.5 Organizator dodaje „Polska” – „Niemcy”, `2026-10-10 20:45`. W Studio `starts_at = 2026-10-10 18:45:00+00`, a na liście „10.10.2026, 20:45”. — b97b305
+- [x] 2.6 Mecz dodany na `2026-12-10 20:45` ma w bazie `19:45:00+00` (CET) i wyświetla się jako 20:45 — b97b305
+- [x] 2.7 Pracownik widzi ten sam mecz na `/matches`, nie widzi formularza, a wysłany ręcznie `POST /api/matches` wraca z `?error=` i nie tworzy meczu — b97b305
+- [x] 2.8 Dwa mecze z tym samym startem pokazują się w kolejności dodania, a mecz z datą w przeszłości daje się dodać i zostaje na liście — b97b305
+- [x] 2.9 Puste strony, identyczne strony („Polska”/„polska”) i godzina nieistniejąca (`2027-03-28 02:30`) dają czytelny błąd bez zapisu — b97b305
+- [x] 2.10 Anonim na `/matches` jest przekierowany do `/auth/signin` — b97b305
 
 ### Phase 3: Smoke i CI
 
 #### Automated
 
-- [ ] 3.1 Lokalnie z kluczem service role wszystkie kroki smoke mają `PASS`, w tym organizatora: `SUPABASE_URL=… SUPABASE_SERVICE_ROLE_KEY=… npm run smoke`
-- [ ] 3.2 Bez klucza service role kroki organizatora mają `SKIP`, a smoke kończy się kodem 0: `npm run smoke`
-- [ ] 3.3 Lint przechodzi: `npm run lint`
+- [x] 3.1 Lokalnie z kluczem service role wszystkie kroki smoke mają `PASS`, w tym organizatora: `SUPABASE_URL=… SUPABASE_SERVICE_ROLE_KEY=… npm run smoke`
+- [x] 3.2 Bez klucza service role kroki organizatora mają `SKIP`, a smoke kończy się kodem 0: `npm run smoke`
+- [x] 3.3 Lint przechodzi: `npm run lint`
 - [ ] 3.4 Job `smoke` w CI przechodzi na PR z tą zmianą
 
 #### Manual

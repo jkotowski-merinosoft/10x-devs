@@ -9,7 +9,7 @@ This file provides guidance to AI Agent when working with code in this repositor
 - `npm run lint` — ESLint with type-checked rules
 - `npm run lint:fix` — auto-fix lint issues
 - `npm run format` — Prettier (includes prettier-plugin-astro + prettier-plugin-tailwindcss)
-- `npm run smoke` — dependency-free auth-flow smoke test (`scripts/smoke.mjs`) against a running server, `BASE_URL` env (default `http://localhost:4321`). Run after dependency upgrades; CI runs it against the production preview with a local Supabase.
+- `npm run smoke` — dependency-free auth-flow smoke test (`scripts/smoke.mjs`) against a running server, `BASE_URL` env (default `http://localhost:4321`). Run after dependency upgrades; CI runs it against the production preview with a local Supabase. Organizer steps need `SUPABASE_URL`, `SUPABASE_KEY` (anon) and `SUPABASE_SERVICE_ROLE_KEY` in the shell (locally: `npx supabase status -o env`); without them they `SKIP`, unless `SMOKE_REQUIRE_ADMIN=1` (CI) makes them `FAIL`. The service role key is for the script only, never `.env` / `.dev.vars`.
 
 Pre-commit hooks: husky + lint-staged runs `eslint --fix` on `*.{ts,tsx,astro}` and `prettier --write` on `*.{json,css,md}`.
 
@@ -54,4 +54,4 @@ GitHub Actions workflow (`.github/workflows/ci.yml`) runs lint + build on every 
 
 Checks: @AGENTS.md. A green `npm run lint` does not replace `npm run smoke`.
 
-`scripts/smoke.mjs` checks, in order: `/` returns 200; anonymous `/dashboard` redirects to `/auth/signin`; `POST /api/auth/signup` redirects to `/auth/confirm-email`; wrong password on `POST /api/auth/signin` redirects to `/auth/signin?error=`; correct password redirects to `/`; signed-in `/dashboard` returns 200; `POST /api/auth/signout` redirects to `/`; `/dashboard` redirects again after signout.
+`scripts/smoke.mjs` checks, in order: `/` returns 200; anonymous `/dashboard` redirects to `/auth/signin`; `POST /api/auth/signup` redirects to `/auth/confirm-email`; wrong password on `POST /api/auth/signin` redirects to `/auth/signin?error=`; correct password redirects to `/`; signed-in `/dashboard` returns 200; `POST /api/auth/signout` redirects to `/`; `/dashboard` redirects again after signout; anonymous `/matches` and `POST /api/matches` redirect to `/auth/signin`; the employee signs in again, gets 200 on `/matches` without the add form, and `POST /api/matches` redirects to `/matches?error=` without saving the match. Organizer steps (service role key required): the Supabase admin API creates a confirmed account and `PATCH /rest/v1/profiles` sets `role = organizer`; the organizer signs in, `/matches` shows the form, `POST /api/matches` redirects to `/matches`; the employee's `/matches` lists the new match; a direct `POST /rest/v1/matches` with the employee's token returns 401/403 (RLS).
