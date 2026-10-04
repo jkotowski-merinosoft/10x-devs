@@ -333,27 +333,27 @@ Lista wykonuje jedno dodatkowe zapytanie o własne typy (indeks `tips(user_id)`)
 
 #### Automated
 
-- [x] 2.1 `npx astro check` bez błędów
-- [x] 2.2 `npm run lint` bez błędów
-- [x] 2.3 `npm run build` przechodzi
-- [x] 2.4 Istniejący `npm run smoke` przechodzi w całości
+- [x] 2.1 `npx astro check` bez błędów — 2eb8bf0
+- [x] 2.2 `npm run lint` bez błędów — 2eb8bf0
+- [x] 2.3 `npm run build` przechodzi — 2eb8bf0
+- [x] 2.4 Istniejący `npm run smoke` przechodzi w całości — 2eb8bf0
 
 #### Manual
 
-- [x] 2.5 Zapis i poprawka typu widoczne w formularzu i na liście
-- [x] 2.6 Wynik spoza 0–99 albo niecałkowity odrzucony komunikatem
-- [x] 2.7 Drugie konto nie widzi cudzego typu przed startem
-- [x] 2.8 Mecz po starcie: brak formularza, typy wszystkich z podpisami, zapis po starcie odrzucony
-- [x] 2.9 Nieistniejący albo błędny id meczu daje 404
-- [x] 2.10 Organizator też może typować
+- [x] 2.5 Zapis i poprawka typu widoczne w formularzu i na liście — 2eb8bf0
+- [x] 2.6 Wynik spoza 0–99 albo niecałkowity odrzucony komunikatem — 2eb8bf0
+- [x] 2.7 Drugie konto nie widzi cudzego typu przed startem — 2eb8bf0
+- [x] 2.8 Mecz po starcie: brak formularza, typy wszystkich z podpisami, zapis po starcie odrzucony — 2eb8bf0
+- [x] 2.9 Nieistniejący albo błędny id meczu daje 404 — 2eb8bf0
+- [x] 2.10 Organizator też może typować — 2eb8bf0
 
 ### Phase 3: Smoke i dokumentacja
 
 #### Automated
 
-- [ ] 3.1 `npm run lint` bez błędów
-- [ ] 3.2 `npm run build` przechodzi
-- [ ] 3.3 `npm run smoke` lokalnie z `SMOKE_REQUIRE_ADMIN=1`: wszystkie kroki `PASS`
+- [x] 3.1 `npm run lint` bez błędów
+- [x] 3.2 `npm run build` przechodzi
+- [x] 3.3 `npm run smoke` lokalnie z `SMOKE_REQUIRE_ADMIN=1`: wszystkie kroki `PASS`
 - [ ] 3.4 CI na PR: job smoke zielony, kroki typów jako `PASS`
 
 #### Manual

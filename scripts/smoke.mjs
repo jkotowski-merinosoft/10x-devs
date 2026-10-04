@@ -2,7 +2,8 @@
 // Zero dependencies on purpose. Run against a live server: BASE_URL=http://localhost:4321 node scripts/smoke.mjs
 // Organizer steps also need SUPABASE_URL, SUPABASE_KEY (anon) and SUPABASE_SERVICE_ROLE_KEY; without them
 // they are skipped, unless SMOKE_REQUIRE_ADMIN=1. The service role key is used only by this script.
-// With the service role key the script deletes its match and accounts at the end. Never run it against production.
+// With the service role key the script deletes its matches (their tips cascade) and accounts at the end.
+// Never run it against production.
 
 import { randomUUID } from "node:crypto";
 
@@ -15,12 +16,21 @@ const organizerEmail = `smoke-organizer-${stamp}@example.com`;
 // New password every run, so leftover smoke accounts cannot be signed into.
 const password = `Smoke-${randomUUID()}`;
 const match = { side_a: `Smoke A ${stamp}`, side_b: `Smoke B ${stamp}`, starts_at: "2030-06-15T20:45" };
+// Already started, so tipping is closed and every tip on it is visible.
+const pastMatch = { side_a: `Smoke Past A ${stamp}`, side_b: `Smoke Past B ${stamp}`, starts_at: "2020-06-15T20:45" };
+// Display names follow public.mask_email(): first domain label -> first letter + ".." + last letter.
+const maskedEmail = `smoke-${stamp}@e..e.com`;
+const maskedOrganizerEmail = `smoke-organizer-${stamp}@e..e.com`;
 const FORM = 'action="/api/matches"';
 
 // One cookie jar per session: the employee (signup account) and the organizer.
 const jar = new Map();
 const organizerJar = new Map();
 let organizerId = "";
+let futureId = "";
+let pastId = "";
+// Supabase API sessions (access token + user id), one per e-mail, created on first use.
+const apiSessions = new Map();
 
 function cookieHeader(cookies) {
   return [...cookies.entries()].map(([k, v]) => `${k}=${v}`).join("; ");
@@ -74,6 +84,38 @@ async function supabase(path, { method = "GET", key = SUPABASE_KEY, token = key,
   return { status: response.status, location: message.slice(0, 120), json };
 }
 
+// Signs in through the Supabase auth API. The token stays in memory and is never printed.
+async function apiSession(address) {
+  const cached = apiSessions.get(address);
+  if (cached) return cached;
+  const result = await supabase("/auth/v1/token?grant_type=password", {
+    method: "POST",
+    body: { email: address, password },
+  });
+  const session = { result, token: result.json?.access_token ?? "", userId: result.json?.user?.id ?? "" };
+  if (session.token) apiSessions.set(address, session);
+  return session;
+}
+
+// Narrows the /matches page to the list row of one match, so assertions cannot hit other rows
+// (e.g. "1:0" inside the "21:00" kick-off time of an unrelated match).
+async function matchRow(sideA, cookies = jar) {
+  const page = await request("/matches", { cookies });
+  const at = page.body.indexOf(sideA);
+  if (at === -1) return { ...page, status: 0, location: "match row not found", body: "" };
+  const start = page.body.lastIndexOf("<li", at);
+  const end = page.body.indexOf("</li>", at);
+  return { ...page, body: page.body.slice(Math.max(start, 0), end === -1 ? undefined : end) };
+}
+
+// Reads the id of a smoke match through the service role.
+async function matchId(sideA) {
+  const result = await supabase(`/rest/v1/matches?select=id&side_a=eq.${encodeURIComponent(sideA)}`, {
+    key: SUPABASE_SERVICE_ROLE_KEY,
+  });
+  return Array.isArray(result.json) && result.json.length === 1 ? String(result.json[0].id) : "";
+}
+
 const steps = [
   ["home renders", () => request("/"), { status: 200 }],
   ["dashboard redirects anonymous user", () => request("/dashboard"), { status: 302, location: "/auth/signin" }],
@@ -117,6 +159,21 @@ const steps = [
     { status: 302, location: "/matches?error=" },
   ],
   ["employee match not saved", () => request("/matches"), { status: 200, notContains: match.side_a }],
+  [
+    "match page redirects anonymous user",
+    () => request("/matches/1", { cookies: new Map() }),
+    { status: 302, location: "/auth/signin" },
+  ],
+  [
+    "save tip redirects anonymous user",
+    () =>
+      request("/api/tips", {
+        method: "POST",
+        form: { match_id: "1", score_a: "1", score_b: "0" },
+        cookies: new Map(),
+      }),
+    { status: 302, location: "/auth/signin" },
+  ],
 ];
 
 const organizerSteps = [
@@ -169,14 +226,120 @@ const organizerSteps = [
   ],
   ["employee sees organizer match", () => request("/matches"), { status: 200, contains: match.side_a }],
   [
+    "organizer adds started match",
+    () => request("/api/matches", { method: "POST", form: pastMatch, cookies: organizerJar }),
+    { status: 302, location: "/matches", notLocation: "?error=" },
+  ],
+  [
+    "admin reads smoke match ids",
+    async () => {
+      futureId = await matchId(match.side_a);
+      pastId = await matchId(pastMatch.side_a);
+      return { status: futureId && pastId ? 200 : 0, location: "" };
+    },
+    { status: 200 },
+  ],
+  [
+    "employee saves tip",
+    () => request("/api/tips", { method: "POST", form: { match_id: futureId, score_a: "97", score_b: "3" } }),
+    () => ({ status: 302, location: `/matches/${futureId}`, notLocation: "?error=" }),
+  ],
+  ["list shows saved tip", () => matchRow(match.side_a), { status: 200, contains: "Twój typ: 97:3" }],
+  [
+    "employee corrects tip",
+    () => request("/api/tips", { method: "POST", form: { match_id: futureId, score_a: "98", score_b: "4" } }),
+    () => ({ status: 302, location: `/matches/${futureId}`, notLocation: "?error=" }),
+  ],
+  [
+    "list shows corrected tip",
+    () => matchRow(match.side_a),
+    { status: 200, contains: "Twój typ: 98:4", notContains: "97:3" },
+  ],
+  [
+    "tip rejected after kick-off",
+    () => request("/api/tips", { method: "POST", form: { match_id: pastId, score_a: "1", score_b: "1" } }),
+    () => ({ status: 302, location: `/matches/${pastId}?error=` }),
+  ],
+  [
+    "RLS rejects direct tip after kick-off",
+    async () => {
+      const { result, token } = await apiSession(email);
+      if (!token) return { ...result, status: 0 };
+      return supabase("/rest/v1/tips", {
+        method: "POST",
+        token,
+        body: { match_id: Number(pastId), score_a: 1, score_b: 1 },
+      });
+    },
+    { status: [401, 403] },
+  ],
+  [
+    "RLS hides other tips before kick-off",
+    async () => {
+      const { result, token } = await apiSession(organizerEmail);
+      if (!token) return { ...result, status: 0 };
+      const tips = await supabase(`/rest/v1/tips?select=score_a,score_b&match_id=eq.${futureId}`, { token });
+      // Only a successful empty array passes; an error must not look like "no tips".
+      const empty = Array.isArray(tips.json) && tips.json.length === 0;
+      return { ...tips, status: empty ? tips.status : 0 };
+    },
+    { status: 200 },
+  ],
+  [
+    "RLS blocks changing other tips",
+    async () => {
+      const organizer = await apiSession(organizerEmail);
+      const employee = await apiSession(email);
+      if (!organizer.token) return { ...organizer.result, status: 0 };
+      if (!employee.userId) return { ...employee.result, status: 0 };
+      const filter = `match_id=eq.${futureId}&user_id=eq.${employee.userId}`;
+      const patched = await supabase(`/rest/v1/tips?${filter}`, {
+        method: "PATCH",
+        token: organizer.token,
+        body: { score_a: 0, score_b: 0 },
+        prefer: "return=representation",
+      });
+      if (!Array.isArray(patched.json) || patched.json.length !== 0) return { ...patched, status: 0 };
+      const stored = await supabase(`/rest/v1/tips?select=score_a,score_b&${filter}`, {
+        key: SUPABASE_SERVICE_ROLE_KEY,
+      });
+      const tip = Array.isArray(stored.json) && stored.json.length === 1 ? stored.json[0] : null;
+      const intact = tip?.score_a === 98 && tip?.score_b === 4;
+      return { status: intact ? patched.status : 0, location: intact ? "" : "employee tip not 98:4" };
+    },
+    { status: 200 },
+  ],
+  [
+    "match page hides other tips before kick-off",
+    () => request(`/matches/${futureId}`, { cookies: organizerJar }),
+    { status: 200, notContains: maskedEmail },
+  ],
+  [
+    "admin adds organizer tip after kick-off",
+    () =>
+      supabase("/rest/v1/tips", {
+        method: "POST",
+        key: SUPABASE_SERVICE_ROLE_KEY,
+        body: { match_id: Number(pastId), user_id: organizerId, score_a: 1, score_b: 0 },
+      }),
+    { status: 201 },
+  ],
+  [
+    "list shows only own tip after kick-off",
+    // The organizer's 1:0 is readable after kick-off, but the list filters by user.
+    () => matchRow(pastMatch.side_a),
+    { status: 200, contains: "brak typu", notContains: "1:0" },
+  ],
+  [
+    "match page shows masked tips after kick-off",
+    () => request(`/matches/${pastId}`),
+    { status: 200, contains: maskedOrganizerEmail },
+  ],
+  [
     "RLS rejects direct insert by employee",
     async () => {
-      const signin = await supabase("/auth/v1/token?grant_type=password", {
-        method: "POST",
-        body: { email, password },
-      });
-      const token = signin.json?.access_token;
-      if (!token) return { ...signin, status: 0 };
+      const { result, token } = await apiSession(email);
+      if (!token) return { ...result, status: 0 };
       return supabase("/rest/v1/matches", { method: "POST", token, body: match });
     },
     { status: [401, 403] },
@@ -184,17 +347,16 @@ const organizerSteps = [
   [
     "cleanup removes smoke data",
     async () => {
-      // The smoke match first, then both smoke accounts (their profiles cascade).
-      const removed = await supabase(`/rest/v1/matches?side_a=eq.${encodeURIComponent(match.side_a)}`, {
-        method: "DELETE",
-        key: SUPABASE_SERVICE_ROLE_KEY,
-      });
-      if (removed.status < 200 || removed.status >= 300) return removed;
-      const signin = await supabase("/auth/v1/token?grant_type=password", {
-        method: "POST",
-        body: { email, password },
-      });
-      for (const id of [organizerId, signin.json?.user?.id].filter(Boolean)) {
+      // Both smoke matches first (their tips cascade), then both smoke accounts (their profiles cascade).
+      for (const sideA of [match.side_a, pastMatch.side_a]) {
+        const removed = await supabase(`/rest/v1/matches?side_a=eq.${encodeURIComponent(sideA)}`, {
+          method: "DELETE",
+          key: SUPABASE_SERVICE_ROLE_KEY,
+        });
+        if (removed.status < 200 || removed.status >= 300) return removed;
+      }
+      const employee = await apiSession(email);
+      for (const id of [organizerId, employee.userId].filter(Boolean)) {
         const result = await supabase(`/auth/v1/admin/users/${id}`, {
           method: "DELETE",
           key: SUPABASE_SERVICE_ROLE_KEY,
@@ -220,8 +382,10 @@ function check(actual, expected) {
 
 let failed = 0;
 async function run(list) {
-  for (const [name, step, expected] of list) {
+  for (const [name, step, expectation] of list) {
     const actual = await step();
+    // Expectations built from ids read at run time are functions.
+    const expected = typeof expectation === "function" ? expectation() : expectation;
     const ok = check(actual, expected);
     console.log(`${ok ? "PASS" : "FAIL"}  ${name}  -> ${actual.status} ${actual.location}`);
     if (!ok) {
