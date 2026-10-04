@@ -351,11 +351,11 @@ Lista wykonuje jedno dodatkowe zapytanie o własne typy (indeks `tips(user_id)`)
 
 #### Automated
 
-- [x] 3.1 `npm run lint` bez błędów
-- [x] 3.2 `npm run build` przechodzi
-- [x] 3.3 `npm run smoke` lokalnie z `SMOKE_REQUIRE_ADMIN=1`: wszystkie kroki `PASS`
-- [ ] 3.4 CI na PR: job smoke zielony, kroki typów jako `PASS`
+- [x] 3.1 `npm run lint` bez błędów — 94f7e16
+- [x] 3.2 `npm run build` przechodzi — 94f7e16
+- [x] 3.3 `npm run smoke` lokalnie z `SMOKE_REQUIRE_ADMIN=1`: wszystkie kroki `PASS` — 94f7e16
+- [x] 3.4 CI na PR: job smoke zielony, kroki typów jako `PASS` — 94f7e16
 
 #### Manual
 
-- [ ] 3.5 Po lokalnym smoke nie zostają mecze, typy ani konta smoke
+- [x] 3.5 Po lokalnym smoke nie zostają mecze, typy ani konta smoke
