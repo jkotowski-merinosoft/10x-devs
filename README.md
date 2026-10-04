@@ -209,6 +209,8 @@ SUPABASE_URL="$API_URL" SUPABASE_KEY="$ANON_KEY" SUPABASE_SERVICE_ROLE_KEY="$SER
 
 Without these variables the organizer steps print `SKIP` and the smoke still exits with code 0.
 
+With the service role key, the last step deletes the smoke match and both smoke accounts. Every run uses a new random password. Run the organizer steps only against a local Supabase or a separate development project, never against production.
+
 > **Note:** this script exists primarily to guard the development of the starter itself — it is a fast sanity check that dependency upgrades did not break the build, the Cloudflare adapter or the Supabase auth flow. It is **not** a substitute for a real test suite. Once you build your own product on top of this starter, add proper tests (unit, integration, end-to-end) suited to your application.
 
 ## CI

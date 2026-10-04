@@ -2,6 +2,9 @@
 // Zero dependencies on purpose. Run against a live server: BASE_URL=http://localhost:4321 node scripts/smoke.mjs
 // Organizer steps also need SUPABASE_URL, SUPABASE_KEY (anon) and SUPABASE_SERVICE_ROLE_KEY; without them
 // they are skipped, unless SMOKE_REQUIRE_ADMIN=1. The service role key is used only by this script.
+// With the service role key the script deletes its match and accounts at the end. Never run it against production.
+
+import { randomUUID } from "node:crypto";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:4321";
 const { SUPABASE_URL, SUPABASE_KEY, SUPABASE_SERVICE_ROLE_KEY } = process.env;
@@ -9,7 +12,8 @@ const requireAdmin = process.env.SMOKE_REQUIRE_ADMIN === "1";
 const stamp = Date.now();
 const email = `smoke-${stamp}@example.com`;
 const organizerEmail = `smoke-organizer-${stamp}@example.com`;
-const password = "Smoke-Test-Passw0rd!";
+// New password every run, so leftover smoke accounts cannot be signed into.
+const password = `Smoke-${randomUUID()}`;
 const match = { side_a: `Smoke A ${stamp}`, side_b: `Smoke B ${stamp}`, starts_at: "2030-06-15T20:45" };
 const FORM = 'action="/api/matches"';
 
@@ -176,6 +180,30 @@ const organizerSteps = [
       return supabase("/rest/v1/matches", { method: "POST", token, body: match });
     },
     { status: [401, 403] },
+  ],
+  [
+    "cleanup removes smoke data",
+    async () => {
+      // The smoke match first, then both smoke accounts (their profiles cascade).
+      const removed = await supabase(`/rest/v1/matches?side_a=eq.${encodeURIComponent(match.side_a)}`, {
+        method: "DELETE",
+        key: SUPABASE_SERVICE_ROLE_KEY,
+      });
+      if (removed.status < 200 || removed.status >= 300) return removed;
+      const signin = await supabase("/auth/v1/token?grant_type=password", {
+        method: "POST",
+        body: { email, password },
+      });
+      for (const id of [organizerId, signin.json?.user?.id].filter(Boolean)) {
+        const result = await supabase(`/auth/v1/admin/users/${id}`, {
+          method: "DELETE",
+          key: SUPABASE_SERVICE_ROLE_KEY,
+        });
+        if (result.status !== 200) return result;
+      }
+      return { status: 200, location: "" };
+    },
+    { status: 200 },
   ],
 ];
 
