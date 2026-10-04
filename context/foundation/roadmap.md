@@ -3,7 +3,7 @@ project: Liga typera
 version: 1
 status: draft
 created: 2026-09-30
-updated: 2026-10-03
+updated: 2026-10-04
 prd_version: 1
 main_goal: speed
 top_blocker: time
@@ -42,7 +42,7 @@ Organizator w firmie zbiera typy ustnie i sam poprawia punktację w arkuszu. Ka�
 
 | ID   | Change ID                 | Outcome (user can …)                                                      | Prerequisites | PRD refs                                             | Status   |
 | ---- | ------------------------- | ------------------------------------------------------------------------- | ------------- | ---------------------------------------------------- | -------- |
-| S-01 | add-match-to-shared-list  | organizator dodaje mecz, a obie role widzą go na jednej liście            | —             | US-01, FR-001, FR-011                                | in-progress |
+| S-01 | add-match-to-shared-list  | organizator dodaje mecz, a obie role widzą go na jednej liście            | —             | US-01, FR-001, FR-011                                | done        |
 | S-02 | enter-own-tip             | pracownik wpisuje typ i widzi tylko swój                                  | S-01          | US-01, FR-012, FR-013                                | proposed |
 | S-03 | set-league-point-stakes   | organizator ustala dwie stawki punktacji dla całej ligi                   | S-01          | US-01, FR-008                                        | proposed |
 | S-04 | result-to-standings       | po wpisaniu wyniku widać punkty przy typie i zaktualizowaną klasyfikację  | S-02, S-03    | US-01, FR-009, FR-010, FR-014, FR-015, FR-020        | proposed |
@@ -85,7 +85,7 @@ No foundation item. Login, the UI shell, and the request path are already presen
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Stoi pierwsze, bo bez meczu na wspólnej liście nie ma typu ani punktów; rozdzielenie ról wchodzi tutaj, skoro logowanie już jest.
-- **Status:** in-progress
+- **Status:** done
 
 ### S-02: Własny typ
 
@@ -165,3 +165,5 @@ No foundation item. Login, the UI shell, and the request path are already presen
 ## Milestone History
 
 ## Done
+
+- **S-01: Organizator może dodać mecz (drużyny albo zawodnicy, data i godzina rozpoczęcia), a organizator i pracownik widzą ten mecz na jednej liście.** — Archived 2026-10-04 → `context/archive/2026-10-01-add-match-to-shared-list/`. Lesson: —.
