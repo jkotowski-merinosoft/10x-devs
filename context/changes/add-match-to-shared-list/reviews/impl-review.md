@@ -40,7 +40,7 @@ Success criteria evidence: `npm run lint` passes (0 errors, 2 `no-console` warni
   - Tradeoff: Offboarding an organizer requires manual reassignment, which is friction for a company tool.
   - Confidence: MED — workable only while there are few organizers.
   - Blind spot: Smoke organizer accounts on a cloud instance could then never be deleted (see F3).
-- **Decision**: FIXED (Fix A) — supabase/migrations/20261004000000_harden_profiles_and_matches.sql (not applied locally: no Docker)
+- **Decision**: FIXED (Fix A) — supabase/migrations/20261004000000_harden_profiles_and_matches.sql — verified in CI (PR #2, run 37202612567: migration applied on a clean database, smoke 22/22 PASS)
 
 ### F2 — `listMatches` hides DB errors as "Brak meczów"
 
@@ -64,7 +64,7 @@ Success criteria evidence: `npm run lint` passes (0 errors, 2 `no-console` warni
   - Tradeoff: Junk matches still accumulate if someone runs it against cloud anyway.
   - Confidence: HIGH — nothing in the script needs the password to be stable across runs.
   - Blind spot: Have not checked whether anyone already ran it against a cloud project (leftover accounts).
-- **Decision**: FIXED (differently: random password per run + cleanup step deleting the smoke match and both smoke accounts via admin API; README/CLAUDE.md: never against production, use local or a separate dev project). The cleanup step is not yet verified with a service role key; CI will verify it.
+- **Decision**: FIXED (differently: random password per run + cleanup step deleting the smoke match and both smoke accounts via admin API; README/CLAUDE.md: never against production, use local or a separate dev project). Verified in CI (PR #2, run 37202612567): step "cleanup removes smoke data" PASS.
 
 ### F4 — Unplanned files in the feature commits
 
@@ -104,7 +104,7 @@ Success criteria evidence: `npm run lint` passes (0 errors, 2 `no-console` warni
 - **Location**: supabase/migrations/20261001000000_profiles_and_matches.sql:44-57, 89-91
 - **Detail**: The comment says the privileges are "independent of Supabase's default grants", but nothing is revoked. `anon` and `authenticated` keep the default privileges, and RLS is the only real barrier. That is safe today, because there is no anon policy and `profiles` has no write policies. `is_organizer()` is executable by PUBLIC, so anon can call it over RPC. It returns false and leaks nothing. The `handle_new_user` insert has no `on conflict do nothing`.
 - **Fix**: In the next migration, `revoke all on public.profiles, public.matches from anon`, `revoke execute on function public.is_organizer() from public, anon`, and add `on conflict (user_id) do nothing` to the trigger insert.
-- **Decision**: FIXED — added to supabase/migrations/20261004000000_harden_profiles_and_matches.sql (not applied locally: no Docker; CI will apply it)
+- **Decision**: FIXED — added to supabase/migrations/20261004000000_harden_profiles_and_matches.sql — verified in CI (PR #2, run 37202612567: migration applied; RLS step still 403)
 
 ### F8 — `AGENTS.md` tracked as a symlink (mode 120000)
 
