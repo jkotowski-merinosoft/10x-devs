@@ -318,16 +318,16 @@ Lista wykonuje jedno dodatkowe zapytanie o własne typy (indeks `tips(user_id)`)
 
 #### Automated
 
-- [ ] 1.1 Migracje stosują się od zera: `npx supabase db reset`
-- [ ] 1.2 `npx astro check` bez błędów
-- [ ] 1.3 `npm run lint` bez błędów
-- [ ] 1.4 `npm run build` przechodzi
-- [ ] 1.5 Istniejący `npm run smoke` przechodzi w całości, w tym rejestracja przez zmieniony trigger
+- [x] 1.1 Migracje stosują się od zera: `npx supabase db reset`
+- [x] 1.2 `npx astro check` bez błędów
+- [x] 1.3 `npm run lint` bez błędów
+- [x] 1.4 `npm run build` przechodzi
+- [x] 1.5 Istniejący `npm run smoke` przechodzi w całości, w tym rejestracja przez zmieniony trigger
 
 #### Manual
 
-- [ ] 1.6 `display_name` ma zamaskowane wartości dla kont gmail.com i merinosoft.com.pl
-- [ ] 1.7 RLS w SQL: insert na przyszły mecz działa, na przeszły odrzucony, cudzy typ przed startem niewidoczny
+- [x] 1.6 `display_name` ma zamaskowane wartości dla kont gmail.com i merinosoft.com.pl
+- [x] 1.7 RLS w SQL: insert na przyszły mecz działa, na przeszły odrzucony, cudzy typ przed startem niewidoczny
 
 ### Phase 2: Typowanie i widoki
 

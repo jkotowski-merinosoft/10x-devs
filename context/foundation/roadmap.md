@@ -43,7 +43,7 @@ Organizator w firmie zbiera typy ustnie i sam poprawia punktację w arkuszu. Ka�
 | ID   | Change ID                 | Outcome (user can …)                                                      | Prerequisites | PRD refs                                             | Status   |
 | ---- | ------------------------- | ------------------------------------------------------------------------- | ------------- | ---------------------------------------------------- | -------- |
 | S-01 | add-match-to-shared-list  | organizator dodaje mecz, a obie role widzą go na jednej liście            | —             | US-01, FR-001, FR-011                                | done        |
-| S-02 | enter-own-tip             | pracownik wpisuje typ i widzi tylko swój                                  | S-01          | US-01, FR-012, FR-013                                | planning |
+| S-02 | enter-own-tip             | pracownik wpisuje typ i widzi tylko swój                                  | S-01          | US-01, FR-012, FR-013                                | in-progress |
 | S-03 | set-league-point-stakes   | organizator ustala dwie stawki punktacji dla całej ligi                   | S-01          | US-01, FR-008                                        | proposed |
 | S-04 | result-to-standings       | po wpisaniu wyniku widać punkty przy typie i zaktualizowaną klasyfikację  | S-02, S-03    | US-01, FR-009, FR-010, FR-014, FR-015, FR-020        | proposed |
 | S-05 | edit-match                | organizator poprawia drużyny albo termin meczu                           | S-01          | FR-002                                               | blocked  |
@@ -97,7 +97,7 @@ No foundation item. Login, the UI shell, and the request path are already presen
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Zaraz po liście, bo typ jest środkiem ścieżki z kryterium sukcesu, a zakaz edycji cudzego typu da się sprawdzić dopiero, gdy typ istnieje.
-- **Status:** planning
+- **Status:** in-progress
 
 ### S-03: Stawki punktacji ligi
 
