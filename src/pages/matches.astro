@@ -11,7 +11,9 @@ const isOrganizer = role === "organizer";
 const error = Astro.url.searchParams.get("error");
 
 const supabase = createClient(Astro.request.headers, Astro.cookies);
-const matches: Match[] = supabase ? await listMatches(supabase) : [];
+const { data: matches, error: loadError } = supabase
+  ? await listMatches(supabase)
+  : { data: [] as Match[], error: null };
 
 const inputClass =
   "w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-blue-100/40 focus:border-purple-300 focus:outline-none";
@@ -57,7 +59,11 @@ const inputClass =
           </form>
         )}
 
-        {matches.length === 0 ? (
+        {loadError ? (
+          <p class="rounded-lg border border-red-500/30 bg-red-900/30 px-3 py-2 text-sm text-red-300" role="alert">
+            {loadError}
+          </p>
+        ) : matches.length === 0 ? (
           <p class="text-blue-100/60">Brak meczów</p>
         ) : (
           <ul class="divide-y divide-white/10">

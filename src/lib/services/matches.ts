@@ -4,8 +4,9 @@ import type { CreateMatchInput, Match } from "@/types";
 type SupabaseClient = NonNullable<ReturnType<typeof createClient>>;
 
 const SAVE_ERROR = "Nie udało się zapisać meczu";
+const LOAD_ERROR = "Nie udało się wczytać meczów";
 
-export async function listMatches(supabase: SupabaseClient): Promise<Match[]> {
+export async function listMatches(supabase: SupabaseClient): Promise<{ data: Match[]; error: string | null }> {
   const { data, error } = await supabase
     .from("matches")
     .select("id, side_a, side_b, starts_at, created_at")
@@ -14,10 +15,11 @@ export async function listMatches(supabase: SupabaseClient): Promise<Match[]> {
     .overrideTypes<Match[], { merge: false }>();
 
   if (error) {
+    // eslint-disable-next-line no-console
     console.error(error.message);
-    return [];
+    return { data: [], error: LOAD_ERROR };
   }
-  return data;
+  return { data, error: null };
 }
 
 export async function createMatch(
@@ -28,6 +30,7 @@ export async function createMatch(
   const { error } = await supabase.from("matches").insert(input);
 
   if (error) {
+    // eslint-disable-next-line no-console
     console.error(error.message);
     return { error: SAVE_ERROR };
   }

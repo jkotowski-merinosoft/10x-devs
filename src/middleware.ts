@@ -20,6 +20,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
         .select("role")
         .eq("user_id", user.id)
         .maybeSingle<{ role: Role }>();
+      // eslint-disable-next-line no-console
+      if (error) console.error(error.message);
       context.locals.role = !error && profile?.role === "organizer" ? "organizer" : "employee";
     } else {
       context.locals.role = null;
