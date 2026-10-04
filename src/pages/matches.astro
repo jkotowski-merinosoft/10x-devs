@@ -3,10 +3,12 @@ import Layout from "@/layouts/Layout.astro";
 import Topbar from "@/components/Topbar.astro";
 import { createClient } from "@/lib/supabase";
 import { listMatches } from "@/lib/services/matches";
+import { listOwnTips } from "@/lib/services/tips";
 import { formatWarsaw } from "@/lib/time";
-import type { Match } from "@/types";
+import { cn } from "@/lib/utils";
+import type { Match, Tip } from "@/types";
 
-const { role } = Astro.locals;
+const { role, user } = Astro.locals;
 const isOrganizer = role === "organizer";
 const error = Astro.url.searchParams.get("error");
 
@@ -14,6 +16,11 @@ const supabase = createClient(Astro.request.headers, Astro.cookies);
 const { data: matches, error: loadError } = supabase
   ? await listMatches(supabase)
   : { data: [] as Match[], error: null };
+// A failed tips query shows a banner; the match list still renders.
+const { data: ownTips, error: tipsError } =
+  supabase && user ? await listOwnTips(supabase, user.id) : { data: [] as Tip[], error: null };
+const tipByMatch = new Map(ownTips.map((tip) => [tip.match_id, tip]));
+const now = Date.now();
 
 const inputClass =
   "w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-blue-100/40 focus:border-purple-300 focus:outline-none";
@@ -46,7 +53,12 @@ const inputClass =
             </label>
             <label class="flex flex-col gap-1 text-sm text-blue-100/80 sm:col-span-2">
               Rozpoczęcie (czas warszawski)
-              <input type="datetime-local" name="starts_at" required class:list={[inputClass, "[color-scheme:dark]"]} />
+              <input
+                type="datetime-local"
+                name="starts_at"
+                required
+                class:list={cn(inputClass, "[color-scheme:dark]")}
+              />
             </label>
             <div class="sm:col-span-2">
               <button
@@ -59,6 +71,12 @@ const inputClass =
           </form>
         )}
 
+        {tipsError && (
+          <p class="mb-6 rounded-lg border border-red-500/30 bg-red-900/30 px-3 py-2 text-sm text-red-300" role="alert">
+            {tipsError}
+          </p>
+        )}
+
         {loadError ? (
           <p class="rounded-lg border border-red-500/30 bg-red-900/30 px-3 py-2 text-sm text-red-300" role="alert">
             {loadError}
@@ -67,14 +85,32 @@ const inputClass =
           <p class="text-blue-100/60">Brak meczów</p>
         ) : (
           <ul class="divide-y divide-white/10">
-            {matches.map((match) => (
-              <li class="flex items-center justify-between gap-4 py-3">
-                <span class="font-semibold text-white">
-                  {match.side_a} – {match.side_b}
-                </span>
-                <span class="shrink-0 text-sm text-blue-100/70">{formatWarsaw(match.starts_at)}</span>
-              </li>
-            ))}
+            {matches.map((match) => {
+              const tip = tipByMatch.get(match.id);
+              const isOpen = now < new Date(match.starts_at).getTime();
+              return (
+                <li class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3">
+                  <a
+                    href={`/matches/${match.id}`}
+                    class="font-semibold text-white transition-colors hover:text-purple-200 hover:underline"
+                  >
+                    {match.side_a} – {match.side_b}
+                  </a>
+                  <span class="flex shrink-0 items-center gap-3 text-sm text-blue-100/70">
+                    <span>{formatWarsaw(match.starts_at)}</span>
+                    {!tipsError && <span>{tip ? `Twój typ: ${tip.score_a}:${tip.score_b}` : "brak typu"}</span>}
+                    <span
+                      class:list={cn(
+                        "rounded-full border px-2 py-0.5 text-xs",
+                        isOpen ? "border-green-400/40 text-green-300" : "border-white/20 text-blue-100/50",
+                      )}
+                    >
+                      {isOpen ? "otwarte" : "zamknięte"}
+                    </span>
+                  </span>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>

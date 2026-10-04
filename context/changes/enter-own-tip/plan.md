@@ -318,34 +318,34 @@ Lista wykonuje jedno dodatkowe zapytanie o własne typy (indeks `tips(user_id)`)
 
 #### Automated
 
-- [x] 1.1 Migracje stosują się od zera: `npx supabase db reset`
-- [x] 1.2 `npx astro check` bez błędów
-- [x] 1.3 `npm run lint` bez błędów
-- [x] 1.4 `npm run build` przechodzi
-- [x] 1.5 Istniejący `npm run smoke` przechodzi w całości, w tym rejestracja przez zmieniony trigger
+- [x] 1.1 Migracje stosują się od zera: `npx supabase db reset` — 41a0812
+- [x] 1.2 `npx astro check` bez błędów — 41a0812
+- [x] 1.3 `npm run lint` bez błędów — 41a0812
+- [x] 1.4 `npm run build` przechodzi — 41a0812
+- [x] 1.5 Istniejący `npm run smoke` przechodzi w całości, w tym rejestracja przez zmieniony trigger — 41a0812
 
 #### Manual
 
-- [x] 1.6 `display_name` ma zamaskowane wartości dla kont gmail.com i merinosoft.com.pl
-- [x] 1.7 RLS w SQL: insert na przyszły mecz działa, na przeszły odrzucony, cudzy typ przed startem niewidoczny
+- [x] 1.6 `display_name` ma zamaskowane wartości dla kont gmail.com i merinosoft.com.pl — 41a0812
+- [x] 1.7 RLS w SQL: insert na przyszły mecz działa, na przeszły odrzucony, cudzy typ przed startem niewidoczny — 41a0812
 
 ### Phase 2: Typowanie i widoki
 
 #### Automated
 
-- [ ] 2.1 `npx astro check` bez błędów
-- [ ] 2.2 `npm run lint` bez błędów
-- [ ] 2.3 `npm run build` przechodzi
-- [ ] 2.4 Istniejący `npm run smoke` przechodzi w całości
+- [x] 2.1 `npx astro check` bez błędów
+- [x] 2.2 `npm run lint` bez błędów
+- [x] 2.3 `npm run build` przechodzi
+- [x] 2.4 Istniejący `npm run smoke` przechodzi w całości
 
 #### Manual
 
-- [ ] 2.5 Zapis i poprawka typu widoczne w formularzu i na liście
-- [ ] 2.6 Wynik spoza 0–99 albo niecałkowity odrzucony komunikatem
-- [ ] 2.7 Drugie konto nie widzi cudzego typu przed startem
-- [ ] 2.8 Mecz po starcie: brak formularza, typy wszystkich z podpisami, zapis po starcie odrzucony
-- [ ] 2.9 Nieistniejący albo błędny id meczu daje 404
-- [ ] 2.10 Organizator też może typować
+- [x] 2.5 Zapis i poprawka typu widoczne w formularzu i na liście
+- [x] 2.6 Wynik spoza 0–99 albo niecałkowity odrzucony komunikatem
+- [x] 2.7 Drugie konto nie widzi cudzego typu przed startem
+- [x] 2.8 Mecz po starcie: brak formularza, typy wszystkich z podpisami, zapis po starcie odrzucony
+- [x] 2.9 Nieistniejący albo błędny id meczu daje 404
+- [x] 2.10 Organizator też może typować
 
 ### Phase 3: Smoke i dokumentacja
 
