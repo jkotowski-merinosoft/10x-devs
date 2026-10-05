@@ -1,7 +1,7 @@
 ---
 change_id: matches-table-ui
 title: Interaktywna tabela meczów z modalami dodawania i typowania
-status: implementing
+status: implemented
 created: 2026-10-05
 updated: 2026-10-05
 archived_at: null

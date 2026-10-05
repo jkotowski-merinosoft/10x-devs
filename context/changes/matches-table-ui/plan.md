@@ -494,20 +494,20 @@ Bez migracji danych. Ścieżka przekierowań w API zostaje, więc formularz HTML
 
 #### Automated
 
-- [x] 4.1 Sprawdzenie typów przechodzi: `npx astro check`
-- [x] 4.2 Lint przechodzi: `npm run lint`
-- [x] 4.3 Build przechodzi: `npm run build`
-- [x] 4.4 Smoke z markerem `data-testid="add-match"` przechodzi: `npm run smoke:local` na `npm run dev:local`
+- [x] 4.1 Sprawdzenie typów przechodzi: `npx astro check` — 5a90414
+- [x] 4.2 Lint przechodzi: `npm run lint` — 5a90414
+- [x] 4.3 Build przechodzi: `npm run build` — 5a90414
+- [x] 4.4 Smoke z markerem `data-testid="add-match"` przechodzi: `npm run smoke:local` na `npm run dev:local` — 5a90414
 
 #### Manual
 
-- [x] 4.5 Modal „Dodaj mecz”: błędy pól, zapis bez przeładowania, wiersz na miejscu i podświetlony, toast
-- [x] 4.6 Dodanie meczu przy niepasującej frazie czyści frazę i pokazuje nowy mecz
-- [x] 4.7 Data w zmienionej godzinie DST daje błąd w modalu, dane zostają
-- [x] 4.8 Pracownik nie widzi przycisku „Dodaj mecz”
-- [x] 4.9 Zapis i poprawa typu z modalu aktualizuje wiersz i pokazuje toast
-- [x] 4.10 Rozpoczęty mecz otwiera modal tylko do odczytu z linkiem do strony meczu
-- [x] 4.11 Zapis typu po rozpoczęciu meczu pokazuje komunikat w modalu
-- [x] 4.12 Wygasła sesja daje komunikat „Sesja wygasła. Zaloguj się ponownie.”
-- [x] 4.13 Toast działa w buildzie produkcyjnym (`npm run preview`)
-- [x] 4.14 Modal obsługiwany klawiaturą (Tab, Esc, powrót fokusu)
+- [x] 4.5 Modal „Dodaj mecz”: błędy pól, zapis bez przeładowania, wiersz na miejscu i podświetlony, toast — 5a90414
+- [x] 4.6 Dodanie meczu przy niepasującej frazie czyści frazę i pokazuje nowy mecz — 5a90414
+- [x] 4.7 Data w zmienionej godzinie DST daje błąd w modalu, dane zostają — 5a90414
+- [x] 4.8 Pracownik nie widzi przycisku „Dodaj mecz” — 5a90414
+- [x] 4.9 Zapis i poprawa typu z modalu aktualizuje wiersz i pokazuje toast — 5a90414
+- [x] 4.10 Rozpoczęty mecz otwiera modal tylko do odczytu z linkiem do strony meczu — 5a90414
+- [x] 4.11 Zapis typu po rozpoczęciu meczu pokazuje komunikat w modalu — 5a90414
+- [x] 4.12 Wygasła sesja daje komunikat „Sesja wygasła. Zaloguj się ponownie.” — 5a90414
+- [x] 4.13 Toast działa w buildzie produkcyjnym (`npm run preview`) — 5a90414
+- [x] 4.14 Modal obsługiwany klawiaturą (Tab, Esc, powrót fokusu) — 5a90414
