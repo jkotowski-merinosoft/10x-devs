@@ -8,7 +8,8 @@ Scope: @context/foundation/prd.md. Further rules: @CLAUDE.md.
 - Do not export `prerender = true`. Rendering is full SSR (@astro.config.mjs).
 - Merge classes with `cn()` from `@/lib/utils`. In `.astro`, pass expressions as `class:list={cn(...)}`, never `class={...}` (ESLint `astro/prefer-class-list-directive`). Use `.astro` for static UI; React `client:load` only for interactive UI (@src/pages/auth/signin.astro). No `"use client"`.
 - Add protected paths to `PROTECTED_ROUTES` in @src/middleware.ts.
-- After auth, middleware, or Cloudflare adapter edits, run `npx astro check`, `npm run build`, and `npm run smoke`.
+- After auth, middleware, or Cloudflare adapter edits, run `npx astro check`, `npm run build`, and the local smoke: `npm run dev:local` in the background, then `npm run smoke:local`. After migration edits, run `npx supabase db reset` first.
+- Never edit `.env` / `.dev.vars` to switch databases; `npm run dev:local` points the app at the local Supabase.
 
 ## Commands
 
@@ -17,6 +18,7 @@ Node: @.nvmrc.
 - `npx astro check` — @.github/workflows/ci.yml.
 - `npm run build` — @package.json, @README.md.
 - `npm run smoke` — @scripts/smoke.mjs.
+- `npm run dev:local`, `npm run smoke:local` — @scripts/dev-local.mjs, @scripts/smoke-local.mjs.
 
 ## Layout
 
