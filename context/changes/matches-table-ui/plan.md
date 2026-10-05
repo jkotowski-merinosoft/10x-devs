@@ -450,29 +450,29 @@ Bez migracji danych. Ścieżka przekierowań w API zostaje, więc formularz HTML
 
 #### Automated
 
-- [x] 1.1 Sprawdzenie typów przechodzi: `npx astro check`
-- [x] 1.2 Lint przechodzi: `npm run lint`
-- [x] 1.3 Build przechodzi: `npm run build`
-- [x] 1.4 Smoke przechodzi bez zmian: `npm run dev:local` w tle, potem `npm run smoke:local`
+- [x] 1.1 Sprawdzenie typów przechodzi: `npx astro check` — 80456b4
+- [x] 1.2 Lint przechodzi: `npm run lint` — 80456b4
+- [x] 1.3 Build przechodzi: `npm run build` — 80456b4
+- [x] 1.4 Smoke przechodzi bez zmian: `npm run dev:local` w tle, potem `npm run smoke:local` — 80456b4
 
 #### Manual
 
-- [x] 1.5 `/`, `/auth/signin`, `/auth/signup`, `/dashboard`, `/matches`, `/matches/[id]` wyglądają jak przed zmianą (tło, kolory, przyciski)
-- [x] 1.6 Dodawanie meczu i typu formularzami HTML działa jak dotąd
+- [x] 1.5 `/`, `/auth/signin`, `/auth/signup`, `/dashboard`, `/matches`, `/matches/[id]` wyglądają jak przed zmianą (tło, kolory, przyciski) — 80456b4
+- [x] 1.6 Dodawanie meczu i typu formularzami HTML działa jak dotąd — 80456b4
 
 ### Phase 2: Kontrakt JSON w API
 
 #### Automated
 
-- [ ] 2.1 Sprawdzenie typów przechodzi: `npx astro check`
-- [ ] 2.2 Lint przechodzi: `npm run lint`
-- [ ] 2.3 Build przechodzi: `npm run build`
-- [ ] 2.4 Smoke przechodzi bez zmian (ścieżka przekierowań): `npm run smoke:local` na `npm run dev:local`
+- [x] 2.1 Sprawdzenie typów przechodzi: `npx astro check`
+- [x] 2.2 Lint przechodzi: `npm run lint`
+- [x] 2.3 Build przechodzi: `npm run build`
+- [x] 2.4 Smoke przechodzi bez zmian (ścieżka przekierowań): `npm run smoke:local` na `npm run dev:local`
 
 #### Manual
 
-- [ ] 2.5 `fetch("/api/tips")` z `Accept: application/json` zwraca 200 `{ tip }`, 409 dla rozpoczętego meczu, 400 dla złego wyniku
-- [ ] 2.6 `fetch("/api/matches")` z `Accept: application/json` zwraca 201 `{ match }` dla organizatora i 403 `{ error }` dla pracownika
+- [x] 2.5 `fetch("/api/tips")` z `Accept: application/json` zwraca 200 `{ tip }`, 409 dla rozpoczętego meczu, 400 dla złego wyniku
+- [x] 2.6 `fetch("/api/matches")` z `Accept: application/json` zwraca 201 `{ match }` dla organizatora i 403 `{ error }` dla pracownika
 
 ### Phase 3: Tabela meczów z wyszukiwaniem i sortowaniem
 
