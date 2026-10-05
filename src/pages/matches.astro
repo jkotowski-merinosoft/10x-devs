@@ -4,13 +4,17 @@ import Topbar from "@/components/Topbar.astro";
 import { createClient } from "@/lib/supabase";
 import { listMatches } from "@/lib/services/matches";
 import { listOwnTips } from "@/lib/services/tips";
-import { formatWarsaw } from "@/lib/time";
+import { MAX_SEARCH_LENGTH } from "@/lib/search";
 import { cn } from "@/lib/utils";
+import MatchesTable from "@/components/matches/MatchesTable";
 import type { Match, Tip } from "@/types";
 
 const { role, user } = Astro.locals;
 const isOrganizer = role === "organizer";
 const error = Astro.url.searchParams.get("error");
+// Search and sort live in the URL, so the server already renders the filtered, sorted table.
+const initialQuery = (Astro.url.searchParams.get("q") ?? "").trim().slice(0, MAX_SEARCH_LENGTH);
+const initialSort = Astro.url.searchParams.get("sort") === "desc" ? "desc" : "asc";
 
 const supabase = createClient(Astro.request.headers, Astro.cookies);
 const { data: matches, error: loadError } = supabase
@@ -19,8 +23,6 @@ const { data: matches, error: loadError } = supabase
 // A failed tips query shows a banner; the match list still renders.
 const { data: ownTips, error: tipsError } =
   supabase && user ? await listOwnTips(supabase, user.id) : { data: [] as Tip[], error: null };
-const tipByMatch = new Map(ownTips.map((tip) => [tip.match_id, tip]));
-const now = Date.now();
 
 const inputClass =
   "w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-blue-100/40 focus:border-purple-300 focus:outline-none";
@@ -28,7 +30,7 @@ const inputClass =
 
 <Layout title="Mecze">
   <div class="bg-cosmic min-h-screen p-4">
-    <div class="mx-auto w-full max-w-2xl">
+    <div class="mx-auto w-full max-w-3xl">
       <Topbar />
       <div class="rounded-2xl border border-white/10 bg-white/10 p-8 text-white backdrop-blur-xl">
         <h1 class="mb-6 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-3xl font-bold text-transparent">
@@ -71,47 +73,21 @@ const inputClass =
           </form>
         )}
 
-        {tipsError && (
-          <p class="mb-6 rounded-lg border border-red-500/30 bg-red-900/30 px-3 py-2 text-sm text-red-300" role="alert">
-            {tipsError}
-          </p>
-        )}
-
         {loadError ? (
           <p class="rounded-lg border border-red-500/30 bg-red-900/30 px-3 py-2 text-sm text-red-300" role="alert">
             {loadError}
           </p>
-        ) : matches.length === 0 ? (
-          <p class="text-blue-100/60">Brak meczów</p>
         ) : (
-          <ul class="divide-y divide-white/10">
-            {matches.map((match) => {
-              const tip = tipByMatch.get(match.id);
-              const isOpen = now < new Date(match.starts_at).getTime();
-              return (
-                <li class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-3">
-                  <a
-                    href={`/matches/${match.id}`}
-                    class="font-semibold text-white transition-colors hover:text-purple-200 hover:underline"
-                  >
-                    {match.side_a} – {match.side_b}
-                  </a>
-                  <span class="flex shrink-0 items-center gap-3 text-sm text-blue-100/70">
-                    <span>{formatWarsaw(match.starts_at)}</span>
-                    {!tipsError && <span>{tip ? `Twój typ: ${tip.score_a}:${tip.score_b}` : "brak typu"}</span>}
-                    <span
-                      class:list={cn(
-                        "rounded-full border px-2 py-0.5 text-xs",
-                        isOpen ? "border-green-400/40 text-green-300" : "border-white/20 text-blue-100/50",
-                      )}
-                    >
-                      {isOpen ? "otwarte" : "zamknięte"}
-                    </span>
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
+          <MatchesTable
+            client:load
+            matches={matches}
+            tips={ownTips}
+            tipsError={tipsError}
+            isOrganizer={isOrganizer}
+            now={Date.now()}
+            initialQuery={initialQuery}
+            initialSort={initialSort}
+          />
         )}
       </div>
     </div>

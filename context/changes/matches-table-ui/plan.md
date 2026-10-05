@@ -464,31 +464,31 @@ Bez migracji danych. Ścieżka przekierowań w API zostaje, więc formularz HTML
 
 #### Automated
 
-- [x] 2.1 Sprawdzenie typów przechodzi: `npx astro check`
-- [x] 2.2 Lint przechodzi: `npm run lint`
-- [x] 2.3 Build przechodzi: `npm run build`
-- [x] 2.4 Smoke przechodzi bez zmian (ścieżka przekierowań): `npm run smoke:local` na `npm run dev:local`
+- [x] 2.1 Sprawdzenie typów przechodzi: `npx astro check` — 1d889c0
+- [x] 2.2 Lint przechodzi: `npm run lint` — 1d889c0
+- [x] 2.3 Build przechodzi: `npm run build` — 1d889c0
+- [x] 2.4 Smoke przechodzi bez zmian (ścieżka przekierowań): `npm run smoke:local` na `npm run dev:local` — 1d889c0
 
 #### Manual
 
-- [x] 2.5 `fetch("/api/tips")` z `Accept: application/json` zwraca 200 `{ tip }`, 409 dla rozpoczętego meczu, 400 dla złego wyniku
-- [x] 2.6 `fetch("/api/matches")` z `Accept: application/json` zwraca 201 `{ match }` dla organizatora i 403 `{ error }` dla pracownika
+- [x] 2.5 `fetch("/api/tips")` z `Accept: application/json` zwraca 200 `{ tip }`, 409 dla rozpoczętego meczu, 400 dla złego wyniku — 1d889c0
+- [x] 2.6 `fetch("/api/matches")` z `Accept: application/json` zwraca 201 `{ match }` dla organizatora i 403 `{ error }` dla pracownika — 1d889c0
 
 ### Phase 3: Tabela meczów z wyszukiwaniem i sortowaniem
 
 #### Automated
 
-- [ ] 3.1 Sprawdzenie typów przechodzi: `npx astro check`
-- [ ] 3.2 Lint przechodzi: `npm run lint`
-- [ ] 3.3 Build przechodzi: `npm run build`
-- [ ] 3.4 Smoke z nowymi markerami przechodzi: `npm run smoke:local` na `npm run dev:local`
+- [x] 3.1 Sprawdzenie typów przechodzi: `npx astro check`
+- [x] 3.2 Lint przechodzi: `npm run lint`
+- [x] 3.3 Build przechodzi: `npm run build`
+- [x] 3.4 Smoke z nowymi markerami przechodzi: `npm run smoke:local` na `npm run dev:local`
 
 #### Manual
 
-- [ ] 3.5 Wyszukiwanie ignoruje wielkość liter i polskie znaki; pusty stan dla frazy bez trafień
-- [ ] 3.6 Sortowanie po dacie ↑/↓ i fraza przetrwają odświeżenie bez mignięcia
-- [ ] 3.7 Widok 375 px: ukryte Data i Status, data pod nazwą, brak poziomego przewijania strony
-- [ ] 3.8 Typy i „brak typu” przy właściwych meczach, brak błędów hydracji
+- [x] 3.5 Wyszukiwanie ignoruje wielkość liter i polskie znaki; pusty stan dla frazy bez trafień
+- [x] 3.6 Sortowanie po dacie ↑/↓ i fraza przetrwają odświeżenie bez mignięcia
+- [x] 3.7 Widok 375 px: ukryte Data i Status, data pod nazwą, brak poziomego przewijania strony
+- [x] 3.8 Typy i „brak typu” przy właściwych meczach, brak błędów hydracji
 
 ### Phase 4: Modale dodawania meczu i typowania
 
