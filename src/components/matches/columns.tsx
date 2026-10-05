@@ -11,6 +11,8 @@ interface MatchColumnsOptions {
   showTips: boolean;
   /** Server time (ms) the open/closed status is computed against; never `Date.now()` in render. */
   now: number;
+  /** Opens the tip dialog for the match. */
+  onTipClick: (matchId: number) => void;
 }
 
 /** Same order as `listMatches`: kick-off time, then id. TanStack reverses the whole result for `desc`. */
@@ -27,7 +29,12 @@ function statusLabel(open: boolean): string {
   return open ? "otwarte" : "zamknięte";
 }
 
-export function createMatchColumns({ tipByMatch, showTips, now }: MatchColumnsOptions): ColumnDef<Match, string>[] {
+export function createMatchColumns({
+  tipByMatch,
+  showTips,
+  now,
+  onTipClick,
+}: MatchColumnsOptions): ColumnDef<Match, string>[] {
   const columns: ColumnDef<Match, string>[] = [
     {
       id: "match",
@@ -78,11 +85,18 @@ export function createMatchColumns({ tipByMatch, showTips, now }: MatchColumnsOp
             >
               <span className="sr-only">{statusLabel(open)}</span>
             </span>
-            {/* Phase 4 replaces this link with the tip modal. */}
-            <Button asChild variant="link" size="sm" className="h-auto px-0 text-blue-100/80">
-              <a href={`/matches/${match.id}`} data-tip={value}>
-                {value || "brak typu"}
-              </a>
+            <Button
+              type="button"
+              variant="link"
+              size="sm"
+              className="h-auto px-0 text-blue-100/80"
+              aria-haspopup="dialog"
+              data-tip={value}
+              onClick={() => {
+                onTipClick(match.id);
+              }}
+            >
+              {value || "brak typu"}
             </Button>
           </span>
         );

@@ -21,7 +21,7 @@ const pastMatch = { side_a: `Smoke Past A ${stamp}`, side_b: `Smoke Past B ${sta
 // Display names follow public.mask_email(): first domain label -> first letter + ".." + last letter.
 const maskedEmail = `smoke-${stamp}@e..e.com`;
 const maskedOrganizerEmail = `smoke-organizer-${stamp}@e..e.com`;
-const FORM = 'action="/api/matches"';
+const FORM = 'data-testid="add-match"';
 
 // One cookie jar per session: the employee (signup account) and the organizer.
 const jar = new Map();
@@ -158,7 +158,11 @@ const steps = [
     () => request("/api/auth/signin", { method: "POST", form: { email, password } }),
     { status: 302, location: "/", notLocation: "?error=" },
   ],
-  ["matches renders for employee without form", () => request("/matches"), { status: 200, notContains: FORM }],
+  [
+    "matches renders for employee without add-match button",
+    () => request("/matches"),
+    { status: 200, notContains: FORM },
+  ],
   [
     "add match rejected for employee",
     () => request("/api/matches", { method: "POST", form: match }),
@@ -221,7 +225,7 @@ const organizerSteps = [
     { status: 302, location: "/", notLocation: "?error=" },
   ],
   [
-    "matches renders form for organizer",
+    "matches renders add-match button for organizer",
     () => request("/matches", { cookies: organizerJar }),
     { status: 200, contains: FORM },
   ],

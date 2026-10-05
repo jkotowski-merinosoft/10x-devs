@@ -5,7 +5,6 @@ import { createClient } from "@/lib/supabase";
 import { listMatches } from "@/lib/services/matches";
 import { listOwnTips } from "@/lib/services/tips";
 import { MAX_SEARCH_LENGTH } from "@/lib/search";
-import { cn } from "@/lib/utils";
 import MatchesTable from "@/components/matches/MatchesTable";
 import type { Match, Tip } from "@/types";
 
@@ -23,9 +22,6 @@ const { data: matches, error: loadError } = supabase
 // A failed tips query shows a banner; the match list still renders.
 const { data: ownTips, error: tipsError } =
   supabase && user ? await listOwnTips(supabase, user.id) : { data: [] as Tip[], error: null };
-
-const inputClass =
-  "w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-blue-100/40 focus:border-purple-300 focus:outline-none";
 ---
 
 <Layout title="Mecze">
@@ -41,36 +37,6 @@ const inputClass =
           <p class="mb-6 rounded-lg border border-red-500/30 bg-red-900/30 px-3 py-2 text-sm text-red-300" role="alert">
             {error}
           </p>
-        )}
-
-        {isOrganizer && (
-          <form method="POST" action="/api/matches" class="mb-8 grid gap-4 sm:grid-cols-2">
-            <label class="flex flex-col gap-1 text-sm text-blue-100/80">
-              Strona A
-              <input type="text" name="side_a" required maxlength="100" class:list={inputClass} />
-            </label>
-            <label class="flex flex-col gap-1 text-sm text-blue-100/80">
-              Strona B
-              <input type="text" name="side_b" required maxlength="100" class:list={inputClass} />
-            </label>
-            <label class="flex flex-col gap-1 text-sm text-blue-100/80 sm:col-span-2">
-              Rozpoczęcie (czas warszawski)
-              <input
-                type="datetime-local"
-                name="starts_at"
-                required
-                class:list={cn(inputClass, "[color-scheme:dark]")}
-              />
-            </label>
-            <div class="sm:col-span-2">
-              <button
-                type="submit"
-                class="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm transition-colors hover:bg-white/20"
-              >
-                Dodaj mecz
-              </button>
-            </div>
-          </form>
         )}
 
         {loadError ? (
