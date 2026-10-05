@@ -6,7 +6,7 @@ Scope: @context/foundation/prd.md. Further rules: @CLAUDE.md.
 
 - Do not add a test runner or `*.test.ts` / `*.spec.ts` files unless the user asks.
 - Do not export `prerender = true`. Rendering is full SSR (@astro.config.mjs).
-- Merge classes with `cn()` from `@/lib/utils`. Use `.astro` for static UI; React `client:load` only for interactive UI (@src/pages/auth/signin.astro). No `"use client"`.
+- Merge classes with `cn()` from `@/lib/utils`. In `.astro`, pass expressions as `class:list={cn(...)}`, never `class={...}` (ESLint `astro/prefer-class-list-directive`). Use `.astro` for static UI; React `client:load` only for interactive UI (@src/pages/auth/signin.astro). No `"use client"`.
 - Add protected paths to `PROTECTED_ROUTES` in @src/middleware.ts.
 - After auth, middleware, or Cloudflare adapter edits, run `npx astro check`, `npm run build`, and `npm run smoke`.
 

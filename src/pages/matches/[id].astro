@@ -1,0 +1,154 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Topbar from "@/components/Topbar.astro";
+import { createClient } from "@/lib/supabase";
+import { getMatch } from "@/lib/services/matches";
+import { listMatchTips } from "@/lib/services/tips";
+import { formatWarsaw } from "@/lib/time";
+import { cn } from "@/lib/utils";
+import type { Match, MatchTip } from "@/types";
+
+const userId = Astro.locals.user?.id;
+const error = Astro.url.searchParams.get("error");
+
+const rawId = Astro.params.id ?? "";
+const id = /^[1-9]\d{0,15}$/.test(rawId) ? Number(rawId) : null;
+
+const supabase = createClient(Astro.request.headers, Astro.cookies);
+
+let match: Match | null = null;
+let loadError: string | null = null;
+let tips: MatchTip[] = [];
+let tipsError: string | null = null;
+
+if (id !== null && Number.isSafeInteger(id) && supabase) {
+  ({ data: match, error: loadError } = await getMatch(supabase, id));
+  if (match) {
+    // Before kick-off RLS returns only the caller's tip; after it, everyone's.
+    ({ data: tips, error: tipsError } = await listMatchTips(supabase, match.id));
+  }
+}
+
+const notFound = !loadError && !match;
+if (notFound) {
+  Astro.response.status = 404;
+}
+
+const isOpen = match ? Date.now() < new Date(match.starts_at).getTime() : false;
+const ownTip = tips.find((tip) => tip.user_id === userId);
+
+const bannerClass = "rounded-lg border border-red-500/30 bg-red-900/30 px-3 py-2 text-sm text-red-300";
+const inputClass =
+  "w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-blue-100/40 focus:border-purple-300 focus:outline-none";
+const linkClass = "text-purple-300 transition-colors hover:text-purple-100 hover:underline";
+---
+
+<Layout title={match ? `${match.side_a} – ${match.side_b}` : "Mecz"}>
+  <div class="bg-cosmic min-h-screen p-4">
+    <div class="mx-auto w-full max-w-2xl">
+      <Topbar />
+      <div class="rounded-2xl border border-white/10 bg-white/10 p-8 text-white backdrop-blur-xl">
+        {loadError ? (
+          <p class:list={bannerClass} role="alert">
+            {loadError}
+          </p>
+        ) : !match ? (
+          <>
+            <p class="mb-4 text-blue-100/80">Nie ma takiego meczu</p>
+            <a href="/matches" class:list={cn(linkClass, "text-sm")}>
+              Wróć do listy meczów
+            </a>
+          </>
+        ) : (
+          <>
+            <h1 class="mb-2 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-3xl font-bold text-transparent">
+              {match.side_a} – {match.side_b}
+            </h1>
+            <p class="mb-1 text-sm text-blue-100/70">{formatWarsaw(match.starts_at)}</p>
+            <p class:list={cn("mb-6 text-sm", isOpen ? "text-green-300" : "text-blue-100/60")}>
+              {isOpen ? `Typowanie otwarte do ${formatWarsaw(match.starts_at)}` : "Typowanie zamknięte"}
+            </p>
+
+            {error && (
+              <p class:list={cn(bannerClass, "mb-6")} role="alert">
+                {error}
+              </p>
+            )}
+
+            {tipsError && (
+              <p class:list={cn(bannerClass, "mb-6")} role="alert">
+                {tipsError}
+              </p>
+            )}
+
+            {isOpen ? (
+              <form method="POST" action="/api/tips" class="grid gap-4 sm:grid-cols-2">
+                <input type="hidden" name="match_id" value={match.id} />
+                <label class="flex flex-col gap-1 text-sm text-blue-100/80">
+                  {match.side_a}
+                  <input
+                    type="number"
+                    name="score_a"
+                    min="0"
+                    max="99"
+                    step="1"
+                    required
+                    value={ownTip?.score_a}
+                    class:list={inputClass}
+                  />
+                </label>
+                <label class="flex flex-col gap-1 text-sm text-blue-100/80">
+                  {match.side_b}
+                  <input
+                    type="number"
+                    name="score_b"
+                    min="0"
+                    max="99"
+                    step="1"
+                    required
+                    value={ownTip?.score_b}
+                    class:list={inputClass}
+                  />
+                </label>
+                <p class="text-sm text-blue-100/60 sm:col-span-2">
+                  Trafiony zwycięzca albo remis też daje punkty, nawet przy innym wyniku.
+                </p>
+                <div class="sm:col-span-2">
+                  <button
+                    type="submit"
+                    class="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm transition-colors hover:bg-white/20"
+                  >
+                    {ownTip ? "Popraw typ" : "Zapisz typ"}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              !tipsError &&
+              (tips.length === 0 ? (
+                <p class="text-blue-100/60">Nikt nie wytypował tego meczu</p>
+              ) : (
+                <ul class="divide-y divide-white/10">
+                  {tips.map((tip) => (
+                    <li class="flex items-center justify-between gap-4 py-3">
+                      <span class:list={cn("text-white", tip.user_id === userId && "font-semibold")}>
+                        {tip.display_name ?? "Użytkownik"}
+                        {tip.user_id === userId && " (Ty)"}
+                      </span>
+                      <span class="shrink-0 font-mono text-white">
+                        {tip.score_a}:{tip.score_b}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ))
+            )}
+
+            <a href="/matches" class:list={cn(linkClass, "mt-6 inline-block text-sm")}>
+              Wróć do listy meczów
+            </a>
+          </>
+        )}
+      </div>
+    </div>
+  </div>
+</Layout>
