@@ -1,25 +1,8 @@
 import type { APIRoute } from "astro";
-import { z } from "astro/zod";
 import { createClient } from "@/lib/supabase";
 import { getMatch } from "@/lib/services/matches";
 import { saveTip } from "@/lib/services/tips";
-
-const SCORE_MESSAGE = "Wynik musi być liczbą całkowitą od 0 do 99";
-
-const matchIdSchema = z
-  .string("Nieprawidłowy mecz")
-  .regex(/^[1-9]\d{0,15}$/, "Nieprawidłowy mecz")
-  .transform(Number)
-  .refine((value) => Number.isSafeInteger(value), "Nieprawidłowy mecz");
-
-// Digits only, so "1.5", "-1" and "" are rejected rather than coerced.
-const score = z
-  .string(SCORE_MESSAGE)
-  .trim()
-  .regex(/^\d{1,2}$/, SCORE_MESSAGE)
-  .transform(Number);
-
-const scoresSchema = z.object({ score_a: score, score_b: score });
+import { matchIdSchema, scoresSchema } from "@/lib/schemas/tip";
 
 export const POST: APIRoute = async (context) => {
   const redirectToList = (message: string) => context.redirect(`/matches?error=${encodeURIComponent(message)}`);
