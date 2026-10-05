@@ -28,19 +28,21 @@ interface Props {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onSaved: (tip: Tip) => void;
+  /** Returns focus to the button that opened the dialog. */
+  onCloseAutoFocus: (event: Event) => void;
   /** Server time (ms) for the open/closed status; never `Date.now()` in render. The API has the final say. */
   now: number;
 }
 
 type ScoresInput = z.input<typeof scoresSchema>;
 
-export function TipDialog({ match, tip, isOpen, onOpenChange, onSaved, now }: Props) {
+export function TipDialog({ match, tip, isOpen, onOpenChange, onSaved, onCloseAutoFocus, now }: Props) {
   const bettingOpen = match ? now < new Date(match.starts_at).getTime() : false;
 
   return (
     <Dialog open={isOpen && match !== null} onOpenChange={onOpenChange}>
       {match && (
-        <DialogContent>
+        <DialogContent onCloseAutoFocus={onCloseAutoFocus}>
           <DialogHeader>
             <DialogTitle>
               {match.side_a} – {match.side_b}

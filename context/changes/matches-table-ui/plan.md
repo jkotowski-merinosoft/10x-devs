@@ -442,6 +442,18 @@ Bez migracji danych. Ścieżka przekierowań w API zostaje, więc formularz HTML
 - Smoke: `scripts/smoke.mjs:24,102-109,155,218,247,256,331`
 - Wzorzec wyspy formularza: `src/components/auth/SignInForm.tsx`
 
+## Addendum (impl review 2026-10-05)
+
+Różnice względem kontraktów powyżej, przyjęte w implementacji i w triage `reviews/impl-review.md`:
+
+- `TipDialog` przyjmuje dodatkowo `now` (status bez `Date.now()` w renderze) i `onCloseAutoFocus`. Modal nie ma `DialogTrigger`, więc fokus na przycisk typu wraca przez ten callback (F2).
+- `MatchesTable` przyjmuje `loadError`. Przy błędzie odczytu listy alert zastępuje wyszukiwarkę i tabelę, a pasek organizatora z „Dodaj mecz” i banner `tipsError` zostają. Dodanie meczu w tym stanie przeładowuje stronę (F1).
+- `MatchesTable` trzyma `now` w stanie: na start wartość z serwera, odświeżana `Date.now()` przy kliknięciu typu (F4).
+- `postForm`: „Sesja wygasła” tylko przy `res.redirected`. Odpowiedź bez JSON lub nieparsowalna daje `Błąd serwera (status)` (F3).
+- Przycisk „Dodaj mecz” stoi w osobnym wierszu nad wyszukiwarką, a nie w jednym pasku.
+- `src/components/ui/separator.tsx` jest dodany, bo wymaga go `field.tsx`.
+- Przy sortowaniu `desc` remisy w `starts_at` wychodzą wg `id` malejąco (TanStack odwraca całą kolejność).
+
 ## Progress
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.

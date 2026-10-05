@@ -18,6 +18,7 @@ export const POST: APIRoute = async (context) => {
   }
 
   const user = context.locals.user;
+  // Defense in depth: the middleware already redirects anonymous requests to this protected route.
   if (!user) {
     return wantsJson
       ? Response.json({ error: "Zaloguj się, aby typować" }, { status: 401 })

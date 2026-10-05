@@ -11,8 +11,8 @@ interface MatchColumnsOptions {
   showTips: boolean;
   /** Server time (ms) the open/closed status is computed against; never `Date.now()` in render. */
   now: number;
-  /** Opens the tip dialog for the match. */
-  onTipClick: (matchId: number) => void;
+  /** Opens the tip dialog for the match; `trigger` gets focus back when the dialog closes. */
+  onTipClick: (matchId: number, trigger: HTMLElement) => void;
 }
 
 /** Same order as `listMatches`: kick-off time, then id. TanStack reverses the whole result for `desc`. */
@@ -92,8 +92,8 @@ export function createMatchColumns({
               className="h-auto px-0 text-blue-100/80"
               aria-haspopup="dialog"
               data-tip={value}
-              onClick={() => {
-                onTipClick(match.id);
+              onClick={(e) => {
+                onTipClick(match.id, e.currentTarget);
               }}
             >
               {value || "brak typu"}

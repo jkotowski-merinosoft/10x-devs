@@ -39,22 +39,17 @@ const { data: ownTips, error: tipsError } =
           </p>
         )}
 
-        {loadError ? (
-          <p class="rounded-lg border border-red-500/30 bg-red-900/30 px-3 py-2 text-sm text-red-300" role="alert">
-            {loadError}
-          </p>
-        ) : (
-          <MatchesTable
-            client:load
-            matches={matches}
-            tips={ownTips}
-            tipsError={tipsError}
-            isOrganizer={isOrganizer}
-            now={Date.now()}
-            initialQuery={initialQuery}
-            initialSort={initialSort}
-          />
-        )}
+        <MatchesTable
+          client:load
+          matches={matches}
+          loadError={loadError}
+          tips={ownTips}
+          tipsError={tipsError}
+          isOrganizer={isOrganizer}
+          now={Date.now()}
+          initialQuery={initialQuery}
+          initialSort={initialSort}
+        />
       </div>
     </div>
   </div>

@@ -20,22 +20,28 @@ export async function postForm<T>(url: string, values: Record<string, string>): 
   }
 
   // Middleware redirects an expired session to the sign-in page; fetch follows it and gets HTML.
-  if (res.redirected || !res.headers.get("content-type")?.includes("application/json")) {
+  if (res.redirected) {
     return { data: null, error: SESSION_EXPIRED };
+  }
+
+  // A non-JSON body is an unhandled server failure (worker or platform error page).
+  const serverError = `Błąd serwera (${res.status})`;
+  if (!res.headers.get("content-type")?.includes("application/json")) {
+    return { data: null, error: serverError };
   }
 
   let body: unknown;
   try {
     body = await res.json();
   } catch {
-    return { data: null, error: SESSION_EXPIRED };
+    return { data: null, error: serverError };
   }
 
   if (body !== null && typeof body === "object" && "error" in body && typeof body.error === "string") {
     return { data: null, error: body.error };
   }
   if (!res.ok) {
-    return { data: null, error: `Błąd serwera (${res.status})` };
+    return { data: null, error: serverError };
   }
 
   return { data: body as T, error: null };
