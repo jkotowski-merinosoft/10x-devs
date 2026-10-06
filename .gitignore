@@ -43,3 +43,6 @@ pnpm-debug.log*
 
 # lokalny stan CLI: hashe skilli rozjeżdżają się między maszynami
 **/.10x-cli-manifest.json
+
+# zapytania zapisane przez Supabase Studio (SQL Editor)
+supabase/snippets/
