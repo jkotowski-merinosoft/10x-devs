@@ -340,10 +340,10 @@ Jeden dodatkowy odczyt jednego wiersza przy renderze `/matches`, `/matches/[id]`
 
 #### Automated
 
-- [x] 3.1 Pełny smoke przechodzi lokalnie bez `SKIP`: `npm run dev:local` w tle, potem `npm run smoke:local`
-- [x] 3.2 Po smoke `public.league_settings` ma te same stawki co przed nim
-- [x] 3.3 Lint przechodzi: `npm run lint`
+- [x] 3.1 Pełny smoke przechodzi lokalnie bez `SKIP`: `npm run dev:local` w tle, potem `npm run smoke:local` — 7b5af88
+- [x] 3.2 Po smoke `public.league_settings` ma te same stawki co przed nim — 7b5af88
+- [x] 3.3 Lint przechodzi: `npm run lint` — 7b5af88
 
 #### Manual
 
-- [ ] 3.4 CI (lint, build, smoke na produkcyjnym preview z lokalnym Supabase) jest zielone na pushu
+- [x] 3.4 CI (lint, build, smoke na produkcyjnym preview z lokalnym Supabase) jest zielone na pushu — 7b5af88
