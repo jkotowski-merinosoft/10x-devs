@@ -1,40 +1,23 @@
 import type { APIRoute } from "astro";
-import { z } from "astro/zod";
 import { createClient } from "@/lib/supabase";
 import { createMatch } from "@/lib/services/matches";
-import { warsawLocalToUtc } from "@/lib/time";
-
-const side = (label: string) =>
-  z.string(`Podaj ${label}`).trim().min(1, `Podaj ${label}`).max(100, `Nazwa (${label}) może mieć najwyżej 100 znaków`);
-
-const matchSchema = z
-  .object({
-    side_a: side("pierwszą stronę"),
-    side_b: side("drugą stronę"),
-    starts_at: z.string("Podaj datę i godzinę rozpoczęcia").transform((value, ctx) => {
-      const utc = warsawLocalToUtc(value);
-      if (!utc) {
-        ctx.addIssue({ code: "custom", message: "Nieprawidłowa data lub godzina rozpoczęcia (czas warszawski)" });
-        return z.NEVER;
-      }
-      return utc.toISOString();
-    }),
-  })
-  .refine((data) => data.side_a.toLowerCase() !== data.side_b.toLowerCase(), {
-    message: "Strony meczu muszą być różne",
-    path: ["side_b"],
-  });
+import { matchSchema } from "@/lib/schemas/match";
 
 export const POST: APIRoute = async (context) => {
-  const redirectWithError = (message: string) => context.redirect(`/matches?error=${encodeURIComponent(message)}`);
+  // Islands ask for JSON; HTML forms and the smoke test get redirects.
+  const wantsJson = context.request.headers.get("accept")?.includes("application/json") ?? false;
+  const fail = (message: string, status: number) =>
+    wantsJson
+      ? Response.json({ error: message }, { status })
+      : context.redirect(`/matches?error=${encodeURIComponent(message)}`);
 
   const supabase = createClient(context.request.headers, context.cookies);
   if (!supabase) {
-    return redirectWithError("Supabase is not configured");
+    return fail("Supabase is not configured", 500);
   }
 
   if (context.locals.role !== "organizer") {
-    return redirectWithError("Tylko organizator może dodawać mecze");
+    return fail("Tylko organizator może dodawać mecze", 403);
   }
 
   const form = await context.request.formData();
@@ -44,13 +27,16 @@ export const POST: APIRoute = async (context) => {
     starts_at: form.get("starts_at") ?? undefined,
   });
   if (!parsed.success) {
-    return redirectWithError(parsed.error.issues[0]?.message ?? "Nieprawidłowe dane formularza");
+    return fail(parsed.error.issues[0]?.message ?? "Nieprawidłowe dane formularza", 400);
   }
 
-  const { error } = await createMatch(supabase, parsed.data);
+  const { data: match, error } = await createMatch(supabase, parsed.data);
   if (error) {
-    return redirectWithError(error);
+    return fail(error, 500);
   }
 
+  if (wantsJson) {
+    return Response.json({ match }, { status: 201 });
+  }
   return context.redirect("/matches");
 };

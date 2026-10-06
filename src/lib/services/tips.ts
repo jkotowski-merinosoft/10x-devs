@@ -76,16 +76,18 @@ export async function saveTip(
   supabase: SupabaseClient,
   userId: string,
   input: SaveTipInput,
-): Promise<{ error: string | null }> {
+): Promise<{ data: Tip | null; error: string | null }> {
   // RLS rejects the upsert once the match has started, even if the endpoint's check passed.
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("tips")
-    .upsert({ ...input, user_id: userId }, { onConflict: "match_id,user_id" });
+    .upsert({ ...input, user_id: userId }, { onConflict: "match_id,user_id" })
+    .select("match_id, score_a, score_b")
+    .single<Tip>();
 
   if (error) {
     // eslint-disable-next-line no-console
     console.error(error.message);
-    return { error: SAVE_ERROR };
+    return { data: null, error: SAVE_ERROR };
   }
-  return { error: null };
+  return { data, error: null };
 }

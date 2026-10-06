@@ -1,59 +1,52 @@
 import type { APIRoute } from "astro";
-import { z } from "astro/zod";
 import { createClient } from "@/lib/supabase";
 import { getMatch } from "@/lib/services/matches";
 import { saveTip } from "@/lib/services/tips";
-
-const SCORE_MESSAGE = "Wynik musi być liczbą całkowitą od 0 do 99";
-
-const matchIdSchema = z
-  .string("Nieprawidłowy mecz")
-  .regex(/^[1-9]\d{0,15}$/, "Nieprawidłowy mecz")
-  .transform(Number)
-  .refine((value) => Number.isSafeInteger(value), "Nieprawidłowy mecz");
-
-// Digits only, so "1.5", "-1" and "" are rejected rather than coerced.
-const score = z
-  .string(SCORE_MESSAGE)
-  .trim()
-  .regex(/^\d{1,2}$/, SCORE_MESSAGE)
-  .transform(Number);
-
-const scoresSchema = z.object({ score_a: score, score_b: score });
+import { matchIdSchema, scoresSchema } from "@/lib/schemas/tip";
 
 export const POST: APIRoute = async (context) => {
-  const redirectToList = (message: string) => context.redirect(`/matches?error=${encodeURIComponent(message)}`);
+  // Islands ask for JSON; HTML forms and the smoke test get redirects.
+  const wantsJson = context.request.headers.get("accept")?.includes("application/json") ?? false;
+  const failToList = (message: string, status: number) =>
+    wantsJson
+      ? Response.json({ error: message }, { status })
+      : context.redirect(`/matches?error=${encodeURIComponent(message)}`);
 
   const supabase = createClient(context.request.headers, context.cookies);
   if (!supabase) {
-    return redirectToList("Supabase is not configured");
+    return failToList("Supabase is not configured", 500);
   }
 
   const user = context.locals.user;
+  // Defense in depth: the middleware already redirects anonymous requests to this protected route.
   if (!user) {
-    return context.redirect("/auth/signin");
+    return wantsJson
+      ? Response.json({ error: "Zaloguj się, aby typować" }, { status: 401 })
+      : context.redirect("/auth/signin");
   }
 
   const form = await context.request.formData();
   const matchId = matchIdSchema.safeParse(form.get("match_id") ?? undefined);
   if (!matchId.success) {
-    return redirectToList(matchId.error.issues[0]?.message ?? "Nieprawidłowy mecz");
+    return failToList(matchId.error.issues[0]?.message ?? "Nieprawidłowy mecz", 400);
   }
 
-  const redirectToMatch = (message: string) =>
-    context.redirect(`/matches/${matchId.data}?error=${encodeURIComponent(message)}`);
+  const failToMatch = (message: string, status: number) =>
+    wantsJson
+      ? Response.json({ error: message }, { status })
+      : context.redirect(`/matches/${matchId.data}?error=${encodeURIComponent(message)}`);
 
   const { data: match, error: matchError } = await getMatch(supabase, matchId.data);
   if (matchError) {
-    return redirectToMatch(matchError);
+    return failToMatch(matchError, 500);
   }
   if (!match) {
-    return redirectToList("Nie ma takiego meczu");
+    return failToList("Nie ma takiego meczu", 404);
   }
 
   // Only for a readable message; RLS enforces the time limit on its own.
   if (Date.now() >= new Date(match.starts_at).getTime()) {
-    return redirectToMatch("Typowanie tego meczu jest zamknięte");
+    return failToMatch("Typowanie tego meczu jest zamknięte", 409);
   }
 
   const parsed = scoresSchema.safeParse({
@@ -61,13 +54,16 @@ export const POST: APIRoute = async (context) => {
     score_b: form.get("score_b") ?? undefined,
   });
   if (!parsed.success) {
-    return redirectToMatch(parsed.error.issues[0]?.message ?? "Nieprawidłowe dane formularza");
+    return failToMatch(parsed.error.issues[0]?.message ?? "Nieprawidłowe dane formularza", 400);
   }
 
-  const { error } = await saveTip(supabase, user.id, { match_id: match.id, ...parsed.data });
+  const { data: tip, error } = await saveTip(supabase, user.id, { match_id: match.id, ...parsed.data });
   if (error) {
-    return redirectToMatch(error);
+    return failToMatch(error, 500);
   }
 
+  if (wantsJson) {
+    return Response.json({ tip });
+  }
   return context.redirect(`/matches/${match.id}`);
 };

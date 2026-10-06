@@ -45,14 +45,18 @@ export async function getMatch(
 export async function createMatch(
   supabase: SupabaseClient,
   input: CreateMatchInput,
-): Promise<{ error: string | null }> {
+): Promise<{ data: Match | null; error: string | null }> {
   // created_by is filled by the column default (auth.uid()) and checked by RLS.
-  const { error } = await supabase.from("matches").insert(input);
+  const { data, error } = await supabase
+    .from("matches")
+    .insert(input)
+    .select("id, side_a, side_b, starts_at, created_at")
+    .single<Match>();
 
   if (error) {
     // eslint-disable-next-line no-console
     console.error(error.message);
-    return { error: SAVE_ERROR };
+    return { data: null, error: SAVE_ERROR };
   }
-  return { error: null };
+  return { data, error: null };
 }

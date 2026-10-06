@@ -21,7 +21,7 @@ const pastMatch = { side_a: `Smoke Past A ${stamp}`, side_b: `Smoke Past B ${sta
 // Display names follow public.mask_email(): first domain label -> first letter + ".." + last letter.
 const maskedEmail = `smoke-${stamp}@e..e.com`;
 const maskedOrganizerEmail = `smoke-organizer-${stamp}@e..e.com`;
-const FORM = 'action="/api/matches"';
+const FORM = 'data-testid="add-match"';
 
 // One cookie jar per session: the employee (signup account) and the organizer.
 const jar = new Map();
@@ -97,15 +97,21 @@ async function apiSession(address) {
   return session;
 }
 
-// Narrows the /matches page to the list row of one match, so assertions cannot hit other rows
-// (e.g. "1:0" inside the "21:00" kick-off time of an unrelated match).
+// Narrows the /matches page to the table row of one match, so assertions cannot hit other rows
+// (e.g. "1:0" inside the "21:00" kick-off time of an unrelated match). The island's serialized
+// props also contain the match names, so only text after a `<tr` counts.
 async function matchRow(sideA, cookies = jar) {
   const page = await request("/matches", { cookies });
-  const at = page.body.indexOf(sideA);
-  if (at === -1) return { ...page, status: 0, location: "match row not found", body: "" };
-  const start = page.body.lastIndexOf("<li", at);
-  const end = page.body.indexOf("</li>", at);
-  return { ...page, body: page.body.slice(Math.max(start, 0), end === -1 ? undefined : end) };
+  const row = page.body
+    .split("<tr")
+    .slice(1)
+    .map((chunk) => {
+      const end = chunk.indexOf("</tr>");
+      return end === -1 ? chunk : chunk.slice(0, end);
+    })
+    .find((chunk) => chunk.includes(sideA));
+  if (row === undefined) return { ...page, status: 0, location: "match row not found", body: "" };
+  return { ...page, body: `<tr${row}` };
 }
 
 // Reads the id of a smoke match through the service role.
@@ -152,7 +158,11 @@ const steps = [
     () => request("/api/auth/signin", { method: "POST", form: { email, password } }),
     { status: 302, location: "/", notLocation: "?error=" },
   ],
-  ["matches renders for employee without form", () => request("/matches"), { status: 200, notContains: FORM }],
+  [
+    "matches renders for employee without add-match button",
+    () => request("/matches"),
+    { status: 200, notContains: FORM },
+  ],
   [
     "add match rejected for employee",
     () => request("/api/matches", { method: "POST", form: match }),
@@ -215,7 +225,7 @@ const organizerSteps = [
     { status: 302, location: "/", notLocation: "?error=" },
   ],
   [
-    "matches renders form for organizer",
+    "matches renders add-match button for organizer",
     () => request("/matches", { cookies: organizerJar }),
     { status: 200, contains: FORM },
   ],
@@ -244,7 +254,7 @@ const organizerSteps = [
     () => request("/api/tips", { method: "POST", form: { match_id: futureId, score_a: "97", score_b: "3" } }),
     () => ({ status: 302, location: `/matches/${futureId}`, notLocation: "?error=" }),
   ],
-  ["list shows saved tip", () => matchRow(match.side_a), { status: 200, contains: "Twój typ: 97:3" }],
+  ["list shows saved tip", () => matchRow(match.side_a), { status: 200, contains: 'data-tip="97:3"' }],
   [
     "employee corrects tip",
     () => request("/api/tips", { method: "POST", form: { match_id: futureId, score_a: "98", score_b: "4" } }),
@@ -253,7 +263,7 @@ const organizerSteps = [
   [
     "list shows corrected tip",
     () => matchRow(match.side_a),
-    { status: 200, contains: "Twój typ: 98:4", notContains: "97:3" },
+    { status: 200, contains: 'data-tip="98:4"', notContains: 'data-tip="97:3"' },
   ],
   [
     "tip rejected after kick-off",
@@ -328,7 +338,7 @@ const organizerSteps = [
     "list shows only own tip after kick-off",
     // The organizer's 1:0 is readable after kick-off, but the list filters by user.
     () => matchRow(pastMatch.side_a),
-    { status: 200, contains: "brak typu", notContains: "1:0" },
+    { status: 200, contains: 'data-tip=""', notContains: 'data-tip="1:0"' },
   ],
   [
     "match page shows masked tips after kick-off",
