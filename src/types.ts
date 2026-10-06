@@ -33,3 +33,9 @@ export interface SaveTipInput {
   score_a: number;
   score_b: number;
 }
+
+/** Points for a tip: the exact score, or only the right outcome (win / draw / loss). */
+export interface LeagueStakes {
+  exact_points: number;
+  outcome_points: number;
+}
