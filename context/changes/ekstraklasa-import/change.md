@@ -1,7 +1,7 @@
 ---
 change_id: ekstraklasa-import
 title: One-off import of current-season Ekstraklasa fixtures (apifootball.com) for MVP demo data
-status: implementing
+status: implemented
 created: 2026-10-06
 updated: 2026-10-06
 archived_at: null

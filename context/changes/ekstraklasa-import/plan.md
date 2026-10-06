@@ -309,25 +309,25 @@ Migracja jest addytywna (kolumny nullable, constraint na pustych danych przechod
 
 #### Automated
 
-- [x] 2.1 `npm run lint` przechodzi
-- [x] 2.2 `npm run import:ekstraklasa:local` (dry-run) kończy się kodem 0, wypisuje `DRY RUN` i nie zmienia liczby wierszy w `public.matches`
-- [x] 2.3 `npm run import:ekstraklasa:local -- --apply` zapisuje mecze: liczba wierszy z `external_source = 'apifootball'` równa liczbie „do importu” z raportu
-- [x] 2.4 Drugie `npm run import:ekstraklasa:local -- --apply` raportuje 0 nowych i 0 zmienionych i nie zmienia liczby wierszy
-- [x] 2.5 Wyjście skryptu nie zawiera wartości `APIFOOTBALL_KEY` ani service role key
-- [x] 2.6 `npm run smoke:local` po imporcie kończy się bez `FAIL`
+- [x] 2.1 `npm run lint` przechodzi — 20d06d4
+- [x] 2.2 `npm run import:ekstraklasa:local` (dry-run) kończy się kodem 0, wypisuje `DRY RUN` i nie zmienia liczby wierszy w `public.matches` — 20d06d4
+- [x] 2.3 `npm run import:ekstraklasa:local -- --apply` zapisuje mecze: liczba wierszy z `external_source = 'apifootball'` równa liczbie „do importu” z raportu — 20d06d4
+- [x] 2.4 Drugie `npm run import:ekstraklasa:local -- --apply` raportuje 0 nowych i 0 zmienionych i nie zmienia liczby wierszy — 20d06d4
+- [x] 2.5 Wyjście skryptu nie zawiera wartości `APIFOOTBALL_KEY` ani service role key — 20d06d4
+- [x] 2.6 `npm run smoke:local` po imporcie kończy się bez `FAIL` — 20d06d4
 
 #### Manual
 
-- [ ] 2.7 Raport nie zawiera ostrzeżeń o nazwach drużyn spoza mapy
-- [ ] 2.8 `/matches` w `npm run dev:local` pokazuje polskie nazwy drużyn i godziny zgodne z oficjalnym terminarzem Ekstraklasy (w tym jeden mecz po 2026-10-25)
-- [ ] 2.9 Pracownik może wpisać typ na zaimportowany przyszły mecz; rozegrany mecz ma w bazie wynik zgodny z oficjalnym
+- [x] 2.7 Raport nie zawiera ostrzeżeń o nazwach drużyn spoza mapy
+- [x] 2.8 `/matches` w `npm run dev:local` pokazuje polskie nazwy drużyn i godziny zgodne z oficjalnym terminarzem Ekstraklasy (w tym jeden mecz po 2026-10-25)
+- [x] 2.9 Pracownik może wpisać typ na zaimportowany przyszły mecz; rozegrany mecz ma w bazie wynik zgodny z oficjalnym
 
 ### Phase 3: Wdrożenie na prod
 
 #### Manual
 
-- [ ] 3.1 `supabase db push` na prod stosuje migrację bez błędów, a `link` wraca na dev-projekt
-- [ ] 3.2 Dry-run na prod raportuje oczekiwane liczby (ok. 296 meczów, 0 ostrzeżeń o nazwach)
-- [ ] 3.3 Mecze bez `external_source` na prod przejrzane przed `--apply`, decyzja o duplikatach podjęta
-- [ ] 3.4 Po `--apply` `/matches` na https://10x-astro-starter.liga-typera.workers.dev pokazuje mecze Ekstraklasy
-- [ ] 3.5 Trzy mecze (najbliższy, jeden po 2026-10-25, jeden po 2027-03-28) mają godziny zgodne z oficjalnym terminarzem
+- [x] 3.1 `supabase db push` na prod stosuje migrację bez błędów, a `link` wraca na dev-projekt
+- [x] 3.2 Dry-run na prod raportuje oczekiwane liczby (ok. 296 meczów, 0 ostrzeżeń o nazwach)
+- [x] 3.3 Mecze bez `external_source` na prod przejrzane przed `--apply`, decyzja o duplikatach podjęta
+- [x] 3.4 Po `--apply` `/matches` na https://10x-astro-starter.liga-typera.workers.dev pokazuje mecze Ekstraklasy
+- [x] 3.5 Trzy mecze (najbliższy, jeden po 2026-10-25, jeden po 2027-03-28) mają godziny zgodne z oficjalnym terminarzem
