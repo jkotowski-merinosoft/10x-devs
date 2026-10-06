@@ -244,8 +244,9 @@ const steps = [
   ],
   [
     "save stakes rejected for employee",
-    () => request("/api/league", { method: "POST", form: { exact_points: "9", outcome_points: "4" } }),
-    { status: 302, location: "/league?error=" },
+    // Invalid stakes, so even a broken role check cannot save them where nothing restores them.
+    () => request("/api/league", { method: "POST", form: { exact_points: "1", outcome_points: "1" } }),
+    { status: 302, location: `/league?error=${encodeURIComponent("Tylko organizator może zmieniać stawki")}` },
   ],
 ];
 
@@ -474,6 +475,8 @@ const organizerSteps = [
   [
     "organizer saves stakes",
     () => {
+      // Never change stakes the cleanup could not write back.
+      if (!savedStakes) return { status: 0, location: "no remembered stakes, not changing them" };
       // 5 / 2 unless those already are the stakes, so the change is visible.
       newStakes = [
         { exact_points: 5, outcome_points: 2 },

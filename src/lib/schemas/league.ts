@@ -1,8 +1,8 @@
 import { z } from "astro/zod";
 
-// Shared by the stakes endpoint and the client form; mirrors the league_settings_stakes_range CHECK.
+// Validates the stakes form for POST /api/league; mirrors the league_settings_stakes_range CHECK.
 
-export const POINTS_MESSAGE = "Stawka musi być liczbą całkowitą od 0 do 99";
+const POINTS_MESSAGE = "Stawka musi być liczbą całkowitą od 0 do 99";
 
 // Digits only, so "1.5", "-1" and "" are rejected rather than coerced.
 const points = z

@@ -5,6 +5,7 @@ import type { z } from "astro/zod";
 import { toast } from "sonner";
 import { ServerError } from "@/components/auth/ServerError";
 import { Button } from "@/components/ui/button";
+import { stakesHint } from "@/lib/stakes";
 import {
   Dialog,
   DialogContent,
@@ -154,11 +155,7 @@ function TipForm({ match, tip, stakes, onSaved }: TipFormProps) {
         </Field>
       </div>
 
-      <p className="text-sm text-blue-100/60">
-        {stakes
-          ? `Dokładny wynik: ${stakes.exact_points} pkt. Trafiony zwycięzca albo remis przy innym wyniku: ${stakes.outcome_points} pkt.`
-          : "Trafiony zwycięzca albo remis też daje punkty, nawet przy innym wyniku."}
-      </p>
+      <p className="text-sm text-blue-100/60">{stakesHint(stakes)}</p>
 
       <ServerError message={serverError} />
 

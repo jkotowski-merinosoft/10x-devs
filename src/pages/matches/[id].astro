@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase";
 import { getMatch } from "@/lib/services/matches";
 import { listMatchTips } from "@/lib/services/tips";
 import { getStakes } from "@/lib/services/league";
+import { stakesHint } from "@/lib/stakes";
 import { formatWarsaw } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import type { LeagueStakes, Match, MatchTip } from "@/types";
@@ -114,11 +115,7 @@ const linkClass = "text-purple-300 transition-colors hover:text-purple-100 hover
                     class:list={inputClass}
                   />
                 </label>
-                <p class="text-sm text-blue-100/60 sm:col-span-2">
-                  {stakes
-                    ? `Dokładny wynik: ${stakes.exact_points} pkt. Trafiony zwycięzca albo remis przy innym wyniku: ${stakes.outcome_points} pkt.`
-                    : "Trafiony zwycięzca albo remis też daje punkty, nawet przy innym wyniku."}
-                </p>
+                <p class="text-sm text-blue-100/60 sm:col-span-2">{stakesHint(stakes)}</p>
                 <div class="sm:col-span-2">
                   <button
                     type="submit"

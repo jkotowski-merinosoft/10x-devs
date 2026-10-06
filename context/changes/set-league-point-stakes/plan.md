@@ -302,6 +302,16 @@ Jeden dodatkowy odczyt jednego wiersza przy renderze `/matches`, `/matches/[id]`
 - Similar implementation: `src/pages/api/matches.ts:6-42`, `src/lib/services/matches.ts`, `supabase/migrations/20261004120000_tips_and_display_names.sql:150-175`
 - Prior plan: `context/archive/2026-10-04-enter-own-tip/plan.md`
 
+## Deviations
+
+Odstępstwa wprowadzone w implementacji (impl-review 2026-10-07, F3). Wszystkie zaostrzają plan, nie zmieniają zakresu:
+
+- Migracja: `revoke all ... from anon, authenticated` zamiast tylko `anon`, żeby grant kolumnowy `update (exact_points, outcome_points)` faktycznie ograniczał zapis. CHECK `check (id)` ma nazwę `league_settings_single_row`.
+- Smoke porównuje stawki odczytane przez service role ze stawkami, które pokazała strona `/league` pracownika (`seenStakes`), i to te ze strony przywraca w sprzątaniu.
+- Smoke zapisuje 6 / 2, gdy 5 / 2 już są stawkami, żeby zmiana była widoczna.
+- `run()` w smoke łapie wyjątek kroku, liczy go jako porażkę i idzie dalej, żeby sprzątanie zawsze przywróciło stawki.
+- Po przeglądzie (F1, F2): zapis 5 / 2 przez organizatora nie rusza, gdy stawek nie udało się zapamiętać, a POST pracownika wysyła niepoprawne 1 / 1 i sprawdza komunikat „Tylko organizator…”.
+
 ## Progress
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.
