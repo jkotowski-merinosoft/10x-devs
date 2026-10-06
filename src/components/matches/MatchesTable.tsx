@@ -6,7 +6,7 @@ import { useUrlTableState, type SortDirection } from "@/components/hooks/useUrlT
 import { Input } from "@/components/ui/input";
 import { MAX_SEARCH_LENGTH, matchesSearch } from "@/lib/search";
 import { cn } from "@/lib/utils";
-import type { Match, Tip } from "@/types";
+import type { LeagueStakes, Match, Tip } from "@/types";
 import { AddMatchDialog } from "./AddMatchDialog";
 import { TipDialog } from "./TipDialog";
 import { createMatchColumns } from "./columns";
@@ -17,6 +17,8 @@ interface Props {
   loadError: string | null;
   tips: Tip[];
   tipsError: string | null;
+  /** `null` after a failed read: the tip hint falls back to the generic text. */
+  stakes: LeagueStakes | null;
   isOrganizer: boolean;
   /** Server time (ms) for the open/closed status, so server and client render the same markup. */
   now: number;
@@ -34,6 +36,7 @@ export default function MatchesTable({
   loadError,
   tips,
   tipsError,
+  stakes,
   isOrganizer,
   now,
   initialQuery,
@@ -151,6 +154,7 @@ export default function MatchesTable({
             <TipDialog
               match={selectedMatch}
               tip={selectedMatch ? tipByMatch.get(selectedMatch.id) : undefined}
+              stakes={stakes}
               isOpen={tipDialogOpen}
               onOpenChange={setTipDialogOpen}
               onSaved={handleSaved}

@@ -4,6 +4,7 @@ import Topbar from "@/components/Topbar.astro";
 import { createClient } from "@/lib/supabase";
 import { listMatches } from "@/lib/services/matches";
 import { listOwnTips } from "@/lib/services/tips";
+import { getStakes } from "@/lib/services/league";
 import { MAX_SEARCH_LENGTH } from "@/lib/search";
 import MatchesTable from "@/components/matches/MatchesTable";
 import type { Match, Tip } from "@/types";
@@ -22,6 +23,8 @@ const { data: matches, error: loadError } = supabase
 // A failed tips query shows a banner; the match list still renders.
 const { data: ownTips, error: tipsError } =
   supabase && user ? await listOwnTips(supabase, user.id) : { data: [] as Tip[], error: null };
+// A failed stakes read only falls back to the generic tip hint; no banner.
+const { data: stakes } = supabase ? await getStakes(supabase) : { data: null };
 ---
 
 <Layout title="Mecze">
@@ -45,6 +48,7 @@ const { data: ownTips, error: tipsError } =
           loadError={loadError}
           tips={ownTips}
           tipsError={tipsError}
+          stakes={stakes}
           isOrganizer={isOrganizer}
           now={Date.now()}
           initialQuery={initialQuery}

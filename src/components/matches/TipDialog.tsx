@@ -19,12 +19,14 @@ import { postForm } from "@/lib/api-client";
 import { scoresSchema } from "@/lib/schemas/tip";
 import { formatWarsaw } from "@/lib/time";
 import { cn } from "@/lib/utils";
-import type { Match, Tip } from "@/types";
+import type { LeagueStakes, Match, Tip } from "@/types";
 
 interface Props {
   /** `null` closes the dialog. */
   match: Match | null;
   tip: Tip | undefined;
+  /** `null` shows the generic scoring hint. */
+  stakes: LeagueStakes | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onSaved: (tip: Tip) => void;
@@ -36,7 +38,7 @@ interface Props {
 
 type ScoresInput = z.input<typeof scoresSchema>;
 
-export function TipDialog({ match, tip, isOpen, onOpenChange, onSaved, onCloseAutoFocus, now }: Props) {
+export function TipDialog({ match, tip, stakes, isOpen, onOpenChange, onSaved, onCloseAutoFocus, now }: Props) {
   const bettingOpen = match ? now < new Date(match.starts_at).getTime() : false;
 
   return (
@@ -58,6 +60,7 @@ export function TipDialog({ match, tip, isOpen, onOpenChange, onSaved, onCloseAu
             <TipForm
               match={match}
               tip={tip}
+              stakes={stakes}
               onSaved={(saved) => {
                 onSaved(saved);
                 onOpenChange(false);
@@ -84,10 +87,11 @@ export function TipDialog({ match, tip, isOpen, onOpenChange, onSaved, onCloseAu
 interface TipFormProps {
   match: Match;
   tip: Tip | undefined;
+  stakes: LeagueStakes | null;
   onSaved: (tip: Tip) => void;
 }
 
-function TipForm({ match, tip, onSaved }: TipFormProps) {
+function TipForm({ match, tip, stakes, onSaved }: TipFormProps) {
   const id = useId();
   const [serverError, setServerError] = useState<string | null>(null);
   const {
@@ -151,7 +155,9 @@ function TipForm({ match, tip, onSaved }: TipFormProps) {
       </div>
 
       <p className="text-sm text-blue-100/60">
-        Trafiony zwycięzca albo remis też daje punkty, nawet przy innym wyniku.
+        {stakes
+          ? `Dokładny wynik: ${stakes.exact_points} pkt. Trafiony zwycięzca albo remis przy innym wyniku: ${stakes.outcome_points} pkt.`
+          : "Trafiony zwycięzca albo remis też daje punkty, nawet przy innym wyniku."}
       </p>
 
       <ServerError message={serverError} />

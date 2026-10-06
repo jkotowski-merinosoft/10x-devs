@@ -310,31 +310,31 @@ Jeden dodatkowy odczyt jednego wiersza przy renderze `/matches`, `/matches/[id]`
 
 #### Automated
 
-- [x] 1.1 Migracja nakłada się czysto na lokalną bazę: `npx supabase db reset`
-- [x] 1.2 Po resecie `select exact_points, outcome_points from public.league_settings` zwraca dokładnie jeden wiersz `3 | 1`
-- [x] 1.3 Baza odrzuca `update public.league_settings set outcome_points = 3` (CHECK) i `insert` drugiego wiersza
-- [x] 1.4 Typy i Astro przechodzą: `npx astro check`
-- [x] 1.5 Lint przechodzi: `npm run lint`
+- [x] 1.1 Migracja nakłada się czysto na lokalną bazę: `npx supabase db reset` — ef50f40
+- [x] 1.2 Po resecie `select exact_points, outcome_points from public.league_settings` zwraca dokładnie jeden wiersz `3 | 1` — ef50f40
+- [x] 1.3 Baza odrzuca `update public.league_settings set outcome_points = 3` (CHECK) i `insert` drugiego wiersza — ef50f40
+- [x] 1.4 Typy i Astro przechodzą: `npx astro check` — ef50f40
+- [x] 1.5 Lint przechodzi: `npm run lint` — ef50f40
 
 #### Manual
 
-- [x] 1.6 W Supabase Studio tabela ma włączone RLS, dwie polityki (select, update) i brak uprawnień dla `anon`
+- [x] 1.6 W Supabase Studio tabela ma włączone RLS, dwie polityki (select, update) i brak uprawnień dla `anon` — ef50f40
 
 ### Phase 2: Endpoint i UI
 
 #### Automated
 
-- [ ] 2.1 Typy i Astro przechodzą: `npx astro check`
-- [ ] 2.2 Lint przechodzi: `npm run lint`
-- [ ] 2.3 Build przechodzi: `npm run build`
-- [ ] 2.4 Istniejący smoke nadal przechodzi (zmiana middleware): `npm run dev:local` w tle, potem `npm run smoke:local`
+- [x] 2.1 Typy i Astro przechodzą: `npx astro check`
+- [x] 2.2 Lint przechodzi: `npm run lint`
+- [x] 2.3 Build przechodzi: `npm run build`
+- [x] 2.4 Istniejący smoke nadal przechodzi (zmiana middleware): `npm run dev:local` w tle, potem `npm run smoke:local`
 
 #### Manual
 
-- [ ] 2.5 Pracownik widzi na `/league` stawki 3 / 1 i regułę 0 pkt, bez formularza
-- [ ] 2.6 Organizator zmienia stawki na 5 / 2, wraca na `/league` z nowymi wartościami, a podpowiedź w dialogu typu na `/matches` i na `/matches/[id]` pokazuje 5 i 2
-- [ ] 2.7 Organizator wpisuje 2 / 2 i 0 / 0, widzi banner błędu, a stawki się nie zmieniają
-- [ ] 2.8 Link „Liga” w Topbarze działa z `/matches` i `/matches/[id]`
+- [x] 2.5 Pracownik widzi na `/league` stawki 3 / 1 i regułę 0 pkt, bez formularza
+- [x] 2.6 Organizator zmienia stawki na 5 / 2, wraca na `/league` z nowymi wartościami, a podpowiedź w dialogu typu na `/matches` i na `/matches/[id]` pokazuje 5 i 2
+- [x] 2.7 Organizator wpisuje 2 / 2 i 0 / 0, widzi banner błędu, a stawki się nie zmieniają
+- [x] 2.8 Link „Liga” w Topbarze działa z `/matches` i `/matches/[id]`
 
 ### Phase 3: Smoke i dokumentacja
 

@@ -1,0 +1,101 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Topbar from "@/components/Topbar.astro";
+import { createClient } from "@/lib/supabase";
+import { getStakes } from "@/lib/services/league";
+import { cn } from "@/lib/utils";
+import type { LeagueStakes } from "@/types";
+
+const isOrganizer = Astro.locals.role === "organizer";
+const error = Astro.url.searchParams.get("error");
+
+const supabase = createClient(Astro.request.headers, Astro.cookies);
+
+const { data: stakes, error: loadError }: { data: LeagueStakes | null; error: string | null } = supabase
+  ? await getStakes(supabase)
+  : { data: null, error: "Supabase is not configured" };
+
+const bannerClass = "rounded-lg border border-red-500/30 bg-red-900/30 px-3 py-2 text-sm text-red-300";
+const inputClass =
+  "w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-blue-100/40 focus:border-purple-300 focus:outline-none";
+---
+
+<Layout title="Liga">
+  <div class="bg-cosmic min-h-screen p-4">
+    <div class="mx-auto w-full max-w-2xl">
+      <Topbar />
+      <div class="rounded-2xl border border-white/10 bg-white/10 p-8 text-white backdrop-blur-xl">
+        <h1 class="mb-6 bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-3xl font-bold text-transparent">
+          Liga
+        </h1>
+
+        {error && (
+          <p class:list={cn(bannerClass, "mb-6")} role="alert">
+            {error}
+          </p>
+        )}
+
+        {loadError || !stakes ? (
+          <p class:list={bannerClass} role="alert">
+            {loadError ?? "Nie udało się wczytać stawek"}
+          </p>
+        ) : (
+          <>
+            <div
+              data-testid="league-stakes"
+              data-exact={stakes.exact_points}
+              data-outcome={stakes.outcome_points}
+              class="mb-6"
+            >
+              <h2 class="mb-2 text-lg font-semibold">Punktacja</h2>
+              <ul class="list-disc space-y-1 pl-5 text-sm text-blue-100/80">
+                <li>Dokładny wynik: {stakes.exact_points} pkt</li>
+                <li>Trafiony zwycięzca albo remis przy innym wyniku: {stakes.outcome_points} pkt</li>
+                <li>Błędny typ: 0 pkt</li>
+              </ul>
+            </div>
+
+            {isOrganizer && (
+              <form data-testid="stakes-form" method="POST" action="/api/league" class="grid gap-4 sm:grid-cols-2">
+                <label class="flex flex-col gap-1 text-sm text-blue-100/80">
+                  Dokładny wynik (pkt)
+                  <input
+                    type="number"
+                    name="exact_points"
+                    min="0"
+                    max="99"
+                    step="1"
+                    required
+                    value={stakes.exact_points}
+                    class:list={inputClass}
+                  />
+                </label>
+                <label class="flex flex-col gap-1 text-sm text-blue-100/80">
+                  Trafiony zwycięzca albo remis (pkt)
+                  <input
+                    type="number"
+                    name="outcome_points"
+                    min="0"
+                    max="99"
+                    step="1"
+                    required
+                    value={stakes.outcome_points}
+                    class:list={inputClass}
+                  />
+                </label>
+                <div class="sm:col-span-2">
+                  <button
+                    type="submit"
+                    class="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm transition-colors hover:bg-white/20"
+                  >
+                    Zapisz stawki
+                  </button>
+                </div>
+              </form>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  </div>
+</Layout>

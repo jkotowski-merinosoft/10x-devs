@@ -4,9 +4,10 @@ import Topbar from "@/components/Topbar.astro";
 import { createClient } from "@/lib/supabase";
 import { getMatch } from "@/lib/services/matches";
 import { listMatchTips } from "@/lib/services/tips";
+import { getStakes } from "@/lib/services/league";
 import { formatWarsaw } from "@/lib/time";
 import { cn } from "@/lib/utils";
-import type { Match, MatchTip } from "@/types";
+import type { LeagueStakes, Match, MatchTip } from "@/types";
 
 const userId = Astro.locals.user?.id;
 const error = Astro.url.searchParams.get("error");
@@ -20,12 +21,15 @@ let match: Match | null = null;
 let loadError: string | null = null;
 let tips: MatchTip[] = [];
 let tipsError: string | null = null;
+let stakes: LeagueStakes | null = null;
 
 if (id !== null && Number.isSafeInteger(id) && supabase) {
   ({ data: match, error: loadError } = await getMatch(supabase, id));
   if (match) {
     // Before kick-off RLS returns only the caller's tip; after it, everyone's.
     ({ data: tips, error: tipsError } = await listMatchTips(supabase, match.id));
+    // A failed stakes read only falls back to the generic hint; it never blocks tipping.
+    ({ data: stakes } = await getStakes(supabase));
   }
 }
 
@@ -111,7 +115,9 @@ const linkClass = "text-purple-300 transition-colors hover:text-purple-100 hover
                   />
                 </label>
                 <p class="text-sm text-blue-100/60 sm:col-span-2">
-                  Trafiony zwycięzca albo remis też daje punkty, nawet przy innym wyniku.
+                  {stakes
+                    ? `Dokładny wynik: ${stakes.exact_points} pkt. Trafiony zwycięzca albo remis przy innym wyniku: ${stakes.outcome_points} pkt.`
+                    : "Trafiony zwycięzca albo remis też daje punkty, nawet przy innym wyniku."}
                 </p>
                 <div class="sm:col-span-2">
                   <button
