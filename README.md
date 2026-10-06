@@ -56,6 +56,8 @@ npm run dev
 - `npm run lint:fix` - Auto-fix ESLint issues
 - `npm run format` - Run Prettier
 - `npm run smoke` - Smoke test the auth flow against a running server (`BASE_URL`, defaults to `http://localhost:4321`)
+- `npm run import:ekstraklasa` - Import the Ekstraklasa 2026/27 season from apifootball.com (dry run; `-- --apply` writes), see [Ekstraklasa import](#ekstraklasa-import)
+- `npm run import:ekstraklasa:local` - The same import against the local Supabase stack
 
 ## Project Structure
 
@@ -221,6 +223,36 @@ Stop any plain `npm run dev` first, so the smoke talks to a server on the same d
 With the service role key, the last step deletes the smoke match and both smoke accounts. Every run uses a new random password. Run the organizer steps only against a local Supabase or a separate development project, never against production.
 
 > **Note:** this script exists primarily to guard the development of the starter itself — it is a fast sanity check that dependency upgrades did not break the build, the Cloudflare adapter or the Supabase auth flow. It is **not** a substitute for a real test suite. Once you build your own product on top of this starter, add proper tests (unit, integration, end-to-end) suited to your application.
+
+## Ekstraklasa import
+
+`scripts/import-ekstraklasa.mjs` loads the real Ekstraklasa 2026/27 fixtures from [apifootball.com](https://apifootball.com/) into `public.matches`, so the app starts with real matches to tip and the season's played rounds. It is a deliberate one-off exception to the PRD Non-Goal "fetching matches and results from outside": starter data, run by hand, not a sync. The paid API plan is valid until about 2026-10-20; after that the import is not expected to work, and the imported data stays in the database.
+
+- Imports only matches with status `Not Started` and `Finished` (with the final score); other statuses are skipped and counted. Team names are mapped to Polish spelling (`TEAM_NAMES` in the script); an unknown name is kept as is with a warning.
+- Upserts by `external_source = 'apifootball'` + `external_id`, so re-running it never duplicates a match and updates teams, kick-off time and score. It never deletes: matches imported earlier that are now missing or skipped are only listed as stale. Matches added by hand are not touched (the report counts them, as they may duplicate imported ones).
+- Dry run by default: fetches, compares with the database and prints a report ending in `DRY RUN`. Only `--apply` writes, in one atomic request, and prints `APPLIED`. The report header shows the target Supabase host.
+- Refuses the cloud development project; use the local stack or production.
+
+Keys: `APIFOOTBALL_KEY` comes from the shell or, if not set there, from that single line of `.env` (see `.env.example`). `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` come only from the shell. The service role key never goes into `.env`, `.dev.vars` or the Worker's secrets. The script never prints keys or the API URL.
+
+Local stack (URL and service role key taken from `npx supabase status -o env`; refuses a non-local URL):
+
+```bash
+npm run import:ekstraklasa:local             # dry run
+npm run import:ekstraklasa:local -- --apply  # write
+```
+
+Production, from PowerShell, with the keys set for the current session only. The service role key is in the Supabase dashboard of the production project → Project Settings → API Keys (`service_role`), the URL under Project Settings → Data API:
+
+```powershell
+$env:SUPABASE_URL = "https://<prod-project-ref>.supabase.co"
+$env:SUPABASE_SERVICE_ROLE_KEY = "<prod service_role key>"
+npm run import:ekstraklasa              # dry run, review the report
+npm run import:ekstraklasa -- --apply   # write
+Remove-Item Env:SUPABASE_URL, Env:SUPABASE_SERVICE_ROLE_KEY
+```
+
+Apply the migrations to production before the first import. To remove imported data: `delete from public.matches where external_source = 'apifootball'` (cascades to tips on those matches).
 
 ## CI
 

@@ -12,6 +12,7 @@ This file provides guidance to AI Agent when working with code in this repositor
 - `npm run format` — Prettier (includes prettier-plugin-astro + prettier-plugin-tailwindcss)
 - `npm run smoke` — dependency-free auth-flow smoke test (`scripts/smoke.mjs`) against a running server, `BASE_URL` env (default `http://localhost:4321`). Run after dependency upgrades; CI runs it against the production preview with a local Supabase. Organizer steps need `SUPABASE_URL`, `SUPABASE_KEY` (anon) and `SUPABASE_SERVICE_ROLE_KEY` in the shell (locally: `npx supabase status -o env`); without them they `SKIP`, unless `SMOKE_REQUIRE_ADMIN=1` (CI) makes them `FAIL`. The service role key is for the script only, never `.env` / `.dev.vars`.
 - `npm run smoke:local` — `npm run smoke` with the local stack's keys and `SMOKE_REQUIRE_ADMIN=1` (`scripts/smoke-local.mjs`); refuses a non-local Supabase URL. Run it against `npm run dev:local`: against a server on another database the organizer steps fail.
+- `npm run import:ekstraklasa[:local]` — Ekstraklasa 2026/27 import from apifootball.com (`scripts/import-ekstraklasa.mjs`), dry run unless `-- --apply`; `:local` uses the local stack's keys. Keys, prod use and safety: README "Ekstraklasa import".
 
 Pre-commit hooks: husky + lint-staged runs `eslint --fix` on `*.{ts,tsx,astro}` and `prettier --write` on `*.{json,css,md}`.
 

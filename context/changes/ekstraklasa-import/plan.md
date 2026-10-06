@@ -296,25 +296,25 @@ Migracja jest addytywna (kolumny nullable, constraint na pustych danych przechod
 
 #### Automated
 
-- [x] 1.1 `npx supabase db reset` stosuje wszystkie migracje bez błędów
-- [x] 1.2 `npm run lint` przechodzi
-- [x] 1.3 `npx astro check` przechodzi
-- [x] 1.4 `npm run smoke:local` (przy `npm run dev:local` w tle) kończy się bez `FAIL`
+- [x] 1.1 `npx supabase db reset` stosuje wszystkie migracje bez błędów — 1b62a17
+- [x] 1.2 `npm run lint` przechodzi — 1b62a17
+- [x] 1.3 `npx astro check` przechodzi — 1b62a17
+- [x] 1.4 `npm run smoke:local` (przy `npm run dev:local` w tle) kończy się bez `FAIL` — 1b62a17
 
 #### Manual
 
-- [x] 1.5 W lokalnej bazie wstawienie wiersza z samym `score_a` albo samym `external_id` jest odrzucane przez constraint
+- [x] 1.5 W lokalnej bazie wstawienie wiersza z samym `score_a` albo samym `external_id` jest odrzucane przez constraint — 1b62a17
 
 ### Phase 2: Skrypt importu
 
 #### Automated
 
-- [ ] 2.1 `npm run lint` przechodzi
-- [ ] 2.2 `npm run import:ekstraklasa:local` (dry-run) kończy się kodem 0, wypisuje `DRY RUN` i nie zmienia liczby wierszy w `public.matches`
-- [ ] 2.3 `npm run import:ekstraklasa:local -- --apply` zapisuje mecze: liczba wierszy z `external_source = 'apifootball'` równa liczbie „do importu” z raportu
-- [ ] 2.4 Drugie `npm run import:ekstraklasa:local -- --apply` raportuje 0 nowych i 0 zmienionych i nie zmienia liczby wierszy
-- [ ] 2.5 Wyjście skryptu nie zawiera wartości `APIFOOTBALL_KEY` ani service role key
-- [ ] 2.6 `npm run smoke:local` po imporcie kończy się bez `FAIL`
+- [x] 2.1 `npm run lint` przechodzi
+- [x] 2.2 `npm run import:ekstraklasa:local` (dry-run) kończy się kodem 0, wypisuje `DRY RUN` i nie zmienia liczby wierszy w `public.matches`
+- [x] 2.3 `npm run import:ekstraklasa:local -- --apply` zapisuje mecze: liczba wierszy z `external_source = 'apifootball'` równa liczbie „do importu” z raportu
+- [x] 2.4 Drugie `npm run import:ekstraklasa:local -- --apply` raportuje 0 nowych i 0 zmienionych i nie zmienia liczby wierszy
+- [x] 2.5 Wyjście skryptu nie zawiera wartości `APIFOOTBALL_KEY` ani service role key
+- [x] 2.6 `npm run smoke:local` po imporcie kończy się bez `FAIL`
 
 #### Manual
 

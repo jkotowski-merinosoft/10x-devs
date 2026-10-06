@@ -12,7 +12,9 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "smoke": "node scripts/smoke.mjs",
-    "smoke:local": "node scripts/smoke-local.mjs"
+    "smoke:local": "node scripts/smoke-local.mjs",
+    "import:ekstraklasa": "node scripts/import-ekstraklasa.mjs",
+    "import:ekstraklasa:local": "node scripts/import-ekstraklasa-local.mjs"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.10",
