@@ -1,10 +1,10 @@
 ---
 change_id: enter-own-tip
 title: Pracownik wpisuje typ meczu i widzi tylko własny
-status: implemented
+status: archived
 created: 2026-10-04
-updated: 2026-10-04
-archived_at: null
+updated: 2026-10-06
+archived_at: 2026-10-06T15:34:53Z
 ---
 
 ## Notes
