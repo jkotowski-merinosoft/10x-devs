@@ -324,25 +324,25 @@ Jeden dodatkowy odczyt jednego wiersza przy renderze `/matches`, `/matches/[id]`
 
 #### Automated
 
-- [x] 2.1 Typy i Astro przechodzą: `npx astro check`
-- [x] 2.2 Lint przechodzi: `npm run lint`
-- [x] 2.3 Build przechodzi: `npm run build`
-- [x] 2.4 Istniejący smoke nadal przechodzi (zmiana middleware): `npm run dev:local` w tle, potem `npm run smoke:local`
+- [x] 2.1 Typy i Astro przechodzą: `npx astro check` — 3dd98ce
+- [x] 2.2 Lint przechodzi: `npm run lint` — 3dd98ce
+- [x] 2.3 Build przechodzi: `npm run build` — 3dd98ce
+- [x] 2.4 Istniejący smoke nadal przechodzi (zmiana middleware): `npm run dev:local` w tle, potem `npm run smoke:local` — 3dd98ce
 
 #### Manual
 
-- [x] 2.5 Pracownik widzi na `/league` stawki 3 / 1 i regułę 0 pkt, bez formularza
-- [x] 2.6 Organizator zmienia stawki na 5 / 2, wraca na `/league` z nowymi wartościami, a podpowiedź w dialogu typu na `/matches` i na `/matches/[id]` pokazuje 5 i 2
-- [x] 2.7 Organizator wpisuje 2 / 2 i 0 / 0, widzi banner błędu, a stawki się nie zmieniają
-- [x] 2.8 Link „Liga” w Topbarze działa z `/matches` i `/matches/[id]`
+- [x] 2.5 Pracownik widzi na `/league` stawki 3 / 1 i regułę 0 pkt, bez formularza — 3dd98ce
+- [x] 2.6 Organizator zmienia stawki na 5 / 2, wraca na `/league` z nowymi wartościami, a podpowiedź w dialogu typu na `/matches` i na `/matches/[id]` pokazuje 5 i 2 — 3dd98ce
+- [x] 2.7 Organizator wpisuje 2 / 2 i 0 / 0, widzi banner błędu, a stawki się nie zmieniają — 3dd98ce
+- [x] 2.8 Link „Liga” w Topbarze działa z `/matches` i `/matches/[id]` — 3dd98ce
 
 ### Phase 3: Smoke i dokumentacja
 
 #### Automated
 
-- [ ] 3.1 Pełny smoke przechodzi lokalnie bez `SKIP`: `npm run dev:local` w tle, potem `npm run smoke:local`
-- [ ] 3.2 Po smoke `public.league_settings` ma te same stawki co przed nim
-- [ ] 3.3 Lint przechodzi: `npm run lint`
+- [x] 3.1 Pełny smoke przechodzi lokalnie bez `SKIP`: `npm run dev:local` w tle, potem `npm run smoke:local`
+- [x] 3.2 Po smoke `public.league_settings` ma te same stawki co przed nim
+- [x] 3.3 Lint przechodzi: `npm run lint`
 
 #### Manual
 

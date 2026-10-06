@@ -2,7 +2,8 @@
 // Zero dependencies on purpose. Run against a live server: BASE_URL=http://localhost:4321 node scripts/smoke.mjs
 // Organizer steps also need SUPABASE_URL, SUPABASE_KEY (anon) and SUPABASE_SERVICE_ROLE_KEY; without them
 // they are skipped, unless SMOKE_REQUIRE_ADMIN=1. The service role key is used only by this script.
-// With the service role key the script deletes its matches (their tips cascade) and accounts at the end.
+// With the service role key the script deletes its matches (their tips cascade) and accounts at the end,
+// after writing back the league stakes it remembered (they are shared, not created per run).
 // Never run it against production.
 
 import { randomUUID } from "node:crypto";
@@ -29,6 +30,11 @@ const organizerJar = new Map();
 let organizerId = "";
 let futureId = "";
 let pastId = "";
+// League stakes are shared state, not per-run data: the employee's /league shows them before any
+// change, the service role remembers them and cleanup always writes them back.
+let seenStakes = null;
+let savedStakes = null;
+let newStakes = null;
 // Supabase API sessions (access token + user id), one per e-mail, created on first use.
 const apiSessions = new Map();
 
@@ -122,6 +128,34 @@ async function matchId(sideA) {
   return Array.isArray(result.json) && result.json.length === 1 ? String(result.json[0].id) : "";
 }
 
+// Reads data-exact / data-outcome of the data-testid="league-stakes" block on /league.
+function pageStakes(body) {
+  const exact = /data-exact="(\d+)"/.exec(body)?.[1];
+  const outcome = /data-outcome="(\d+)"/.exec(body)?.[1];
+  return exact && outcome ? { exact_points: Number(exact), outcome_points: Number(outcome) } : null;
+}
+
+// Reads the league stakes through the service role.
+async function readStakes() {
+  const result = await supabase("/rest/v1/league_settings?select=exact_points,outcome_points", {
+    key: SUPABASE_SERVICE_ROLE_KEY,
+  });
+  const row = Array.isArray(result.json) && result.json.length === 1 ? result.json[0] : null;
+  return { result, stakes: row ? { exact_points: row.exact_points, outcome_points: row.outcome_points } : null };
+}
+
+function sameStakes(a, b) {
+  return Boolean(a && b && a.exact_points === b.exact_points && a.outcome_points === b.outcome_points);
+}
+
+// Passes only when the service role still reads the remembered stakes.
+async function stakesIntact() {
+  const { result, stakes } = await readStakes();
+  if (!stakes) return { ...result, status: 0 };
+  const intact = sameStakes(stakes, savedStakes);
+  return { status: intact ? 200 : 0, location: intact ? "" : `stakes ${stakes.exact_points}/${stakes.outcome_points}` };
+}
+
 const steps = [
   ["home renders", () => request("/"), { status: 200 }],
   ["dashboard redirects anonymous user", () => request("/dashboard"), { status: 302, location: "/auth/signin" }],
@@ -184,9 +218,76 @@ const steps = [
       }),
     { status: 302, location: "/auth/signin" },
   ],
+  [
+    "league redirects anonymous user",
+    () => request("/league", { cookies: new Map() }),
+    { status: 302, location: "/auth/signin" },
+  ],
+  [
+    "save stakes redirects anonymous user",
+    () =>
+      request("/api/league", {
+        method: "POST",
+        form: { exact_points: "9", outcome_points: "4" },
+        cookies: new Map(),
+      }),
+    { status: 302, location: "/auth/signin" },
+  ],
+  [
+    "league renders stakes for employee without stakes form",
+    async () => {
+      const page = await request("/league");
+      seenStakes = pageStakes(page.body);
+      return page;
+    },
+    { status: 200, contains: 'data-testid="league-stakes"', notContains: 'data-testid="stakes-form"' },
+  ],
+  [
+    "save stakes rejected for employee",
+    () => request("/api/league", { method: "POST", form: { exact_points: "9", outcome_points: "4" } }),
+    { status: 302, location: "/league?error=" },
+  ],
 ];
 
 const organizerSteps = [
+  [
+    "admin remembers league stakes unchanged by employee",
+    async () => {
+      const { result, stakes } = await readStakes();
+      if (!stakes) return { ...result, status: 0 };
+      // The employee's page showed the stakes before its POST; if they differ, that POST got through
+      // and the page values are the ones to restore.
+      savedStakes = seenStakes ?? stakes;
+      const unchanged = sameStakes(stakes, seenStakes);
+      return {
+        status: unchanged ? 200 : 0,
+        location: unchanged ? "" : `stakes ${stakes.exact_points}/${stakes.outcome_points} differ from /league`,
+      };
+    },
+    { status: 200 },
+  ],
+  [
+    "RLS blocks changing stakes by employee",
+    async () => {
+      const { result, token } = await apiSession(email);
+      if (!token) return { ...result, status: 0 };
+      // Values that differ from the current ones, so a change cannot go unnoticed.
+      const body = [
+        { exact_points: 98, outcome_points: 97 },
+        { exact_points: 97, outcome_points: 96 },
+      ].find((stakes) => !sameStakes(stakes, savedStakes));
+      // RLS filters the row out, so PostgREST answers 200 with an empty array instead of 401/403.
+      const patched = await supabase("/rest/v1/league_settings?id=eq.true", {
+        method: "PATCH",
+        token,
+        body,
+        prefer: "return=representation",
+      });
+      if (!Array.isArray(patched.json) || patched.json.length !== 0) return { ...patched, status: 0 };
+      return stakesIntact();
+    },
+    { status: 200 },
+  ],
   [
     "admin creates organizer account",
     async () => {
@@ -355,8 +456,72 @@ const organizerSteps = [
     { status: [401, 403] },
   ],
   [
-    "cleanup removes smoke data",
+    "league renders stakes form for organizer",
+    () => request("/league", { cookies: organizerJar }),
+    { status: 200, contains: 'data-testid="stakes-form"' },
+  ],
+  [
+    "invalid stakes rejected for organizer",
+    () =>
+      request("/api/league", {
+        method: "POST",
+        form: { exact_points: "1", outcome_points: "1" },
+        cookies: organizerJar,
+      }),
+    { status: 302, location: "/league?error=" },
+  ],
+  ["invalid stakes not saved", () => stakesIntact(), { status: 200 }],
+  [
+    "organizer saves stakes",
+    () => {
+      // 5 / 2 unless those already are the stakes, so the change is visible.
+      newStakes = [
+        { exact_points: 5, outcome_points: 2 },
+        { exact_points: 6, outcome_points: 2 },
+      ].find((stakes) => !sameStakes(stakes, savedStakes));
+      return request("/api/league", {
+        method: "POST",
+        form: { exact_points: String(newStakes.exact_points), outcome_points: String(newStakes.outcome_points) },
+        cookies: organizerJar,
+      });
+    },
+    { status: 302, location: "/league", notLocation: "?error=" },
+  ],
+  [
+    "league shows saved stakes",
     async () => {
+      const page = await request("/league", { cookies: organizerJar });
+      const shown = pageStakes(page.body);
+      const ok = sameStakes(shown, newStakes);
+      return {
+        ...page,
+        status: ok ? page.status : 0,
+        location: ok ? "" : "data-exact/data-outcome not the saved stakes",
+      };
+    },
+    { status: 200 },
+  ],
+  [
+    "match page shows saved stakes",
+    () => request(`/matches/${futureId}`),
+    () => ({ status: 200, contains: `Dokładny wynik: ${newStakes?.exact_points} pkt` }),
+  ],
+  [
+    "cleanup restores stakes and removes smoke data",
+    async () => {
+      // Stakes first, even if earlier steps failed; a failed restore does not stop the rest of cleanup.
+      let restoreFailure = null;
+      if (savedStakes) {
+        const restored = await supabase("/rest/v1/league_settings?id=eq.true", {
+          method: "PATCH",
+          key: SUPABASE_SERVICE_ROLE_KEY,
+          body: savedStakes,
+          prefer: "return=representation",
+        });
+        if (!Array.isArray(restored.json) || restored.json.length !== 1) restoreFailure = { ...restored, status: 0 };
+      } else {
+        restoreFailure = { status: 0, location: "no remembered stakes to restore" };
+      }
       // Both smoke matches first (their tips cascade), then both smoke accounts (their profiles cascade).
       for (const sideA of [match.side_a, pastMatch.side_a]) {
         const removed = await supabase(`/rest/v1/matches?side_a=eq.${encodeURIComponent(sideA)}`, {
@@ -373,7 +538,7 @@ const organizerSteps = [
         });
         if (result.status !== 200) return result;
       }
-      return { status: 200, location: "" };
+      return restoreFailure ?? { status: 200, location: "" };
     },
     { status: 200 },
   ],
@@ -393,7 +558,13 @@ function check(actual, expected) {
 let failed = 0;
 async function run(list) {
   for (const [name, step, expectation] of list) {
-    const actual = await step();
+    // A throwing step fails on its own, so the steps after it (cleanup included) still run.
+    let actual;
+    try {
+      actual = await step();
+    } catch (error) {
+      actual = { status: 0, location: String(error?.message ?? error).slice(0, 120), body: "" };
+    }
     // Expectations built from ids read at run time are functions.
     const expected = typeof expectation === "function" ? expectation() : expectation;
     const ok = check(actual, expected);

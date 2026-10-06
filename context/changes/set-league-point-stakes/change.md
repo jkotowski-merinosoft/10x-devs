@@ -3,7 +3,7 @@ change_id: set-league-point-stakes
 title: Organizator ustala stawki punktacji ligi
 status: implementing
 created: 2026-10-06
-updated: 2026-10-06
+updated: 2026-10-07
 ---
 
 ## Notes
