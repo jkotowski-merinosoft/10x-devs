@@ -44,7 +44,7 @@ Organizator w firmie zbiera typy ustnie i sam poprawia punktację w arkuszu. Ka�
 | ---- | ------------------------- | ------------------------------------------------------------------------- | ------------- | ---------------------------------------------------- | -------- |
 | S-01 | add-match-to-shared-list  | organizator dodaje mecz, a obie role widzą go na jednej liście            | —             | US-01, FR-001, FR-011                                | done        |
 | S-02 | enter-own-tip             | pracownik wpisuje typ i widzi tylko swój                                  | S-01          | US-01, FR-012, FR-013                                | done        |
-| S-03 | set-league-point-stakes   | organizator ustala dwie stawki punktacji dla całej ligi                   | S-01          | US-01, FR-008                                        | in-progress |
+| S-03 | set-league-point-stakes   | organizator ustala dwie stawki punktacji dla całej ligi                   | S-01          | US-01, FR-008                                        | done        |
 | S-04 | result-to-standings       | po wpisaniu wyniku widać punkty przy typie i zaktualizowaną klasyfikację  | S-02, S-03    | US-01, FR-009, FR-010, FR-014, FR-015, FR-020        | proposed |
 | S-05 | edit-match                | organizator poprawia drużyny albo termin meczu                           | S-01          | FR-002                                               | blocked  |
 
@@ -109,7 +109,7 @@ No foundation item. Login, the UI shell, and the request path are already presen
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Równolegle z typem, bo stawki nie potrzebują zapisanego typu, a przeliczenie punktów nie ma z czego brać liczb, dopóki stawek nie ma.
-- **Status:** in-progress
+- **Status:** done
 
 ### S-04: Wynik, punkty i klasyfikacja
 
@@ -168,3 +168,4 @@ No foundation item. Login, the UI shell, and the request path are already presen
 
 - **S-01: Organizator może dodać mecz (drużyny albo zawodnicy, data i godzina rozpoczęcia), a organizator i pracownik widzą ten mecz na jednej liście.** — Archived 2026-10-04 → `context/archive/2026-10-01-add-match-to-shared-list/`. Lesson: —.
 - **S-02: Pracownik może wytypować mecz z listy i zobaczyć własny typ; nie może zmienić typu innej osoby.** — Archived 2026-10-06 → `context/archive/2026-10-04-enter-own-tip/`. Lesson: —.
+- **S-03: Organizator może raz dla całej ligi ustalić, ile punktów daje dokładny wynik i ile daje trafiony zwycięzca albo remis przy innym wyniku.** — Archived 2026-10-06 → `context/archive/2026-10-06-set-league-point-stakes/`. Lesson: —.
