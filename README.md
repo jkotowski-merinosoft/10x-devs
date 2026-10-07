@@ -230,10 +230,10 @@ With the service role key, the last step deletes the smoke match and both smoke 
 
 - Imports only matches with status `Not Started` and `Finished` (with the final score); other statuses are skipped and counted. Team names are mapped to Polish spelling (`TEAM_NAMES` in the script); an unknown name is kept as is with a warning.
 - Upserts by `external_source = 'apifootball'` + `external_id`, so re-running it never duplicates a match and updates teams, kick-off time and score. It never deletes: matches imported earlier that are now missing or skipped are only listed as stale. Matches added by hand are not touched (the report counts them, as they may duplicate imported ones).
-- Dry run by default: fetches, compares with the database and prints a report ending in `DRY RUN`. Only `--apply` writes, in one atomic request, and prints `APPLIED`. The report header shows the target Supabase host.
-- Refuses the cloud development project; use the local stack or production.
+- Dry run by default: fetches, compares with the database and prints a report ending in `DRY RUN`. Only `--apply` writes, in one atomic request, and prints `APPLIED`. The report header shows the target Supabase host and whether it is the local stack, the cloud development project or (any other host) probably production.
+- Before writing, `--apply` shows the target host again and asks `[y/N]`; anything but `y` / `tak` aborts with nothing written. `--yes` skips the question (required without a terminal).
 
-Keys: `APIFOOTBALL_KEY` comes from the shell or, if not set there, from that single line of `.env` (see `.env.example`). `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` come only from the shell. The service role key never goes into `.env`, `.dev.vars` or the Worker's secrets. The script never prints keys or the API URL.
+Keys: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` and `APIFOOTBALL_KEY` are each taken from the first source that has them, as with dotenv: the shell, then `.env.import.dev` / `.env.import.prod` (only with `--env dev` / `--env prod`; a missing file is an error), then `.env.import`. `APIFOOTBALL_KEY` alone may also come from its single line of `.env` (see `.env.example`). The report header names the source of each key. The `.env.import*` files are gitignored and read only by this script; the service role key never goes into `.env`, `.dev.vars` or the Worker's secrets. The script never prints keys or the API URL.
 
 Local stack (URL and service role key taken from `npx supabase status -o env`; refuses a non-local URL):
 
@@ -250,6 +250,19 @@ $env:SUPABASE_SERVICE_ROLE_KEY = "<prod service_role key>"
 npm run import:ekstraklasa              # dry run, review the report
 npm run import:ekstraklasa -- --apply   # write
 Remove-Item Env:SUPABASE_URL, Env:SUPABASE_SERVICE_ROLE_KEY
+```
+
+Or keep the keys in a file in the project root (`.env.import`, or one file per database selected with `--env`). A variable left in the shell overrides the file, so check the `keys:` line of the report:
+
+```bash
+# .env.import.prod
+SUPABASE_URL=https://<prod-project-ref>.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=<prod service_role key>
+```
+
+```powershell
+npm run import:ekstraklasa -- --env prod             # dry run
+npm run import:ekstraklasa -- --env prod --apply     # write
 ```
 
 Apply the migrations to production before the first import. To remove imported data: `delete from public.matches where external_source = 'apifootball'` (cascades to tips on those matches).

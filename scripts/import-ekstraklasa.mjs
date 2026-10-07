@@ -1,11 +1,14 @@
 // Imports the Ekstraklasa 2026/27 season from apifootball.com into public.matches (upsert by provider id).
 // Zero dependencies on purpose. Dry run by default; `--apply` writes. Local stack: npm run import:ekstraklasa:local.
-// Needs SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in the shell (never read from .env, which points at the
-// cloud dev project) and APIFOOTBALL_KEY (shell, or only that one line of the gitignored .env).
+// Needs SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY and APIFOOTBALL_KEY. Each is taken from the first source that has
+// it: the shell, `.env.import.<dev|prod>` (only with `--env <dev|prod>`), `.env.import`, and for APIFOOTBALL_KEY
+// alone the gitignored .env (the app's file, pointing at the cloud dev project). The report header names the sources.
+// `--apply` names the target database and asks for confirmation before writing; `--yes` skips the question.
 // Imports only `Not Started` and `Finished` matches. Never deletes: matches imported earlier that are now
 // missing or skipped are only listed. No key and no API URL (the key is in its query) is ever printed.
 
 import { existsSync, readFileSync } from "node:fs";
+import { createInterface } from "node:readline/promises";
 import { URL } from "node:url";
 
 const LEAGUE_ID = "259";
@@ -38,46 +41,80 @@ const TEAM_NAMES = {
   Zaglebie: "Zagłębie Lubin",
 };
 
-const apply = process.argv.slice(2).includes("--apply");
+const args = process.argv.slice(2);
+const apply = args.includes("--apply");
+const assumeYes = args.includes("--yes");
+const envArg = args.findIndex((arg) => arg === "--env" || arg.startsWith("--env="));
+const envVariant =
+  envArg === -1 ? null : args[envArg].startsWith("--env=") ? args[envArg].slice(6) : (args[envArg + 1] ?? "");
+const IMPORT_KEYS = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "APIFOOTBALL_KEY"];
 
 function fail(message) {
   console.error(message);
   process.exit(1);
 }
 
-// Only APIFOOTBALL_KEY may come from .env; everything else there is ignored on purpose.
-function apiKeyFromDotEnv() {
-  const path = new URL("../.env", import.meta.url);
-  if (!existsSync(path)) return "";
+// Reads only `keys` from a file in the project root (first occurrence wins); null when the file is missing.
+function readEnvFile(name, keys) {
+  const path = new URL(`../${name}`, import.meta.url);
+  if (!existsSync(path)) return null;
+  const values = {};
   for (const line of readFileSync(path, "utf8").split(/\r?\n/)) {
-    const found = /^\s*(?:export\s+)?APIFOOTBALL_KEY\s*=\s*(.*?)\s*$/.exec(line);
-    if (found) return found[1].replace(/^(["'])(.*)\1$/, "$2").trim();
+    const found = /^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*?)\s*$/.exec(line);
+    if (found && keys.includes(found[1]) && !Object.hasOwn(values, found[1])) {
+      values[found[1]] = found[2].replace(/^(["'])(.*)\1$/, "$2").trim();
+    }
   }
-  return "";
+  return values;
 }
 
-const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = process.env;
-if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-  fail("Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in the shell (they are never read from .env).");
+// Highest priority first; the shell wins, as with dotenv and `node --env-file`.
+const sources = [{ name: "shell", values: process.env }];
+if (envVariant !== null) {
+  if (!["dev", "prod"].includes(envVariant)) fail("--env must be dev or prod.");
+  const name = `.env.import.${envVariant}`;
+  const values = readEnvFile(name, IMPORT_KEYS);
+  if (!values) fail(`--env ${envVariant} needs ${name} in the project root.`);
+  sources.push({ name, values });
 }
-if (SUPABASE_URL.includes(DEV_PROJECT_REF)) {
-  fail("Refusing to import into the cloud dev project. Use the local stack (import:ekstraklasa:local) or prod.");
+sources.push({ name: ".env.import", values: readEnvFile(".env.import", IMPORT_KEYS) ?? {} });
+// Only APIFOOTBALL_KEY may come from .env; everything else there is ignored on purpose.
+sources.push({ name: ".env", values: readEnvFile(".env", ["APIFOOTBALL_KEY"]) ?? {} });
+
+const resolved = Object.fromEntries(
+  IMPORT_KEYS.map((key) => {
+    const source = sources.find(({ values }) => values[key]);
+    return [key, { value: source?.values[key] ?? "", source: source?.name ?? "not set" }];
+  }),
+);
+const SUPABASE_URL = resolved.SUPABASE_URL.value;
+const SUPABASE_SERVICE_ROLE_KEY = resolved.SUPABASE_SERVICE_ROLE_KEY.value;
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  fail("Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in the shell or in .env.import(.dev|.prod), never in .env.");
 }
 let supabaseHost = "";
+let supabaseHostname = "";
 try {
-  supabaseHost = new URL(SUPABASE_URL).host;
+  ({ host: supabaseHost, hostname: supabaseHostname } = new URL(SUPABASE_URL));
 } catch {
   fail("SUPABASE_URL is not a valid URL.");
 }
-const apiKey = process.env.APIFOOTBALL_KEY || apiKeyFromDotEnv();
-if (!apiKey || apiKey === "###") fail("Set APIFOOTBALL_KEY in the shell or in .env.");
+// Only a hint for the confirmation; any other host is assumed to be production.
+const target = ["localhost", "127.0.0.1", "[::1]"].includes(supabaseHostname)
+  ? "local stack"
+  : supabaseHostname.startsWith(`${DEV_PROJECT_REF}.`)
+    ? "cloud dev project"
+    : "NOT local, NOT cloud dev: probably PRODUCTION";
+const apiKey = resolved.APIFOOTBALL_KEY.value;
+if (!apiKey || apiKey === "###") fail("Set APIFOOTBALL_KEY in the shell, .env.import(.dev|.prod) or .env.");
 
 // Defensive: whatever text leaves this script never carries a key.
 function redact(text) {
   return [apiKey, SUPABASE_SERVICE_ROLE_KEY].reduce((out, secret) => out.split(secret).join("***"), String(text));
 }
 
-console.log(`Ekstraklasa import -> ${supabaseHost} (${apply ? "--apply" : "dry run"})`);
+console.log(`Ekstraklasa import -> ${supabaseHost} [${target}] (${apply ? "--apply" : "dry run"})`);
+console.log(`  keys: ${IMPORT_KEYS.map((key) => `${key} from ${resolved[key].source}`).join(", ")}`);
 
 // --- Fetch -------------------------------------------------------------------------------------------
 
@@ -319,6 +356,20 @@ if (!apply) {
   console.log("\nDRY RUN: nothing written. Re-run with --apply to write.");
   process.exit(0);
 }
+
+// --- Confirm -----------------------------------------------------------------------------------------
+
+async function confirmWrite() {
+  console.log(`\nTarget database: ${supabaseHost} [${target}]`);
+  if (assumeYes) return;
+  if (!process.stdin.isTTY) fail("No terminal to confirm the write. Re-run with --apply --yes. Nothing written.");
+  const prompt = createInterface({ input: process.stdin, output: process.stdout });
+  const answer = await prompt.question(`Write ${rows.length} match(es) into ${supabaseHost}? [y/N] `);
+  prompt.close();
+  if (!["y", "yes", "t", "tak"].includes(answer.trim().toLowerCase())) fail("Aborted. Nothing written.");
+}
+
+await confirmWrite();
 
 // --- Write (one atomic bulk upsert) ------------------------------------------------------------------
 
