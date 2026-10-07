@@ -3,7 +3,7 @@ project: Liga typera
 version: 1
 status: draft
 created: 2026-09-30
-updated: 2026-10-06
+updated: 2026-10-07
 prd_version: 1
 main_goal: speed
 top_blocker: time
@@ -45,7 +45,7 @@ Organizator w firmie zbiera typy ustnie i sam poprawia punktację w arkuszu. Ka�
 | S-01 | add-match-to-shared-list  | organizator dodaje mecz, a obie role widzą go na jednej liście            | —             | US-01, FR-001, FR-011                                | done        |
 | S-02 | enter-own-tip             | pracownik wpisuje typ i widzi tylko swój                                  | S-01          | US-01, FR-012, FR-013                                | done        |
 | S-03 | set-league-point-stakes   | organizator ustala dwie stawki punktacji dla całej ligi                   | S-01          | US-01, FR-008                                        | done        |
-| S-04 | result-to-standings       | po wpisaniu wyniku widać punkty przy typie i zaktualizowaną klasyfikację  | S-02, S-03    | US-01, FR-009, FR-010, FR-014, FR-015, FR-020        | proposed |
+| S-04 | result-to-standings       | po wpisaniu wyniku widać punkty przy typie i zaktualizowaną klasyfikację  | S-02, S-03    | US-01, FR-009, FR-010, FR-014, FR-015, FR-020        | in-progress |
 | S-05 | edit-match                | organizator poprawia drużyny albo termin meczu                           | S-01          | FR-002                                               | blocked  |
 
 ## Streams
@@ -121,7 +121,7 @@ No foundation item. Login, the UI shell, and the request path are already presen
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Tak wcześnie, jak pozwalają typ i stawki — tu widać, czy reguła punktów zastępuje arkusz.
-- **Status:** proposed
+- **Status:** in-progress
 
 ### S-05: Edycja meczu
 
