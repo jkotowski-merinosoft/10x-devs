@@ -411,24 +411,24 @@ Migracja jest addytywna: nowa kolumna nullable, nowe funkcje, triggery i polityk
 
 #### Automated
 
-- [x] 2.1 `npx astro check` przechodzi
-- [x] 2.2 `npm run lint` przechodzi
-- [x] 2.3 `npm run build` przechodzi
+- [x] 2.1 `npx astro check` przechodzi — ed26487
+- [x] 2.2 `npm run lint` przechodzi — ed26487
+- [x] 2.3 `npm run build` przechodzi — ed26487
 
 #### Manual
 
-- [x] 2.4 Organizator na rozpoczętym meczu zapisuje 2:1 i widzi wynik oraz punkty przy typach; poprawka na 1:1 zmienia punkty; „Usuń wynik” usuwa wynik i punkty
-- [x] 2.5 Pracownik na tej stronie widzi wynik i punkty, ale nie widzi formularza; ręczny POST pracownika wraca z komunikatem organizatora
-- [x] 2.6 Organizator na meczu przed startem nie widzi formularza wyniku; ręczny POST wraca z komunikatem o rozpoczęciu
-- [x] 2.7 Zapis i poprawka typu na przyszłym meczu dalej działają (granty kolumnowe nie zepsuły upsertu)
+- [x] 2.4 Organizator na rozpoczętym meczu zapisuje 2:1 i widzi wynik oraz punkty przy typach; poprawka na 1:1 zmienia punkty; „Usuń wynik” usuwa wynik i punkty — ed26487
+- [x] 2.5 Pracownik na tej stronie widzi wynik i punkty, ale nie widzi formularza; ręczny POST pracownika wraca z komunikatem organizatora — ed26487
+- [x] 2.6 Organizator na meczu przed startem nie widzi formularza wyniku; ręczny POST wraca z komunikatem o rozpoczęciu — ed26487
+- [x] 2.7 Zapis i poprawka typu na przyszłym meczu dalej działają (granty kolumnowe nie zepsuły upsertu) — ed26487
 
 ### Phase 3: Lista i klasyfikacja
 
 #### Automated
 
-- [ ] 3.1 `npx astro check` przechodzi
-- [ ] 3.2 `npm run lint` przechodzi
-- [ ] 3.3 `npm run build` przechodzi
+- [x] 3.1 `npx astro check` przechodzi
+- [x] 3.2 `npm run lint` przechodzi
+- [x] 3.3 `npm run build` przechodzi
 
 #### Manual
 

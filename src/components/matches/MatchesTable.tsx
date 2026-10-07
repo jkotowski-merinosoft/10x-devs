@@ -8,6 +8,7 @@ import { MAX_SEARCH_LENGTH, matchesSearch } from "@/lib/search";
 import { cn } from "@/lib/utils";
 import type { LeagueStakes, Match, Tip } from "@/types";
 import { AddMatchDialog } from "./AddMatchDialog";
+import { ResultDialog } from "./ResultDialog";
 import { TipDialog } from "./TipDialog";
 import { createMatchColumns } from "./columns";
 
@@ -49,7 +50,10 @@ export default function MatchesTable({
   const [highlightId, setHighlightId] = useState<number | null>(null);
   // The dialog has no DialogTrigger, so Radix cannot return focus to the tip button by itself.
   const [tipTrigger, setTipTrigger] = useState<HTMLElement | null>(null);
-  // Server time first, so hydration matches; refreshed on tip clicks so a long-open tab sees kick-offs.
+  const [resultMatchId, setResultMatchId] = useState<number | null>(null);
+  const [resultDialogOpen, setResultDialogOpen] = useState(false);
+  const [resultTrigger, setResultTrigger] = useState<HTMLElement | null>(null);
+  // Server time first, so hydration matches; refreshed on tip and result clicks so a long-open tab sees kick-offs.
   const [clock, setClock] = useState(now);
   const { query, setQuery, sorting, setSorting } = useUrlTableState(initialQuery, initialSort);
 
@@ -60,9 +64,24 @@ export default function MatchesTable({
     setTipDialogOpen(true);
   }, []);
 
+  const handleResultClick = useCallback((matchId: number, trigger: HTMLElement) => {
+    setClock(Date.now());
+    setResultTrigger(trigger);
+    setResultMatchId(matchId);
+    setResultDialogOpen(true);
+  }, []);
+
   const columns = useMemo(
-    () => createMatchColumns({ tipByMatch, showTips: !tipsError, now: clock, onTipClick: handleTipClick }),
-    [tipByMatch, tipsError, clock, handleTipClick],
+    () =>
+      createMatchColumns({
+        tipByMatch,
+        showTips: !tipsError,
+        now: clock,
+        onTipClick: handleTipClick,
+        isOrganizer,
+        onResultClick: handleResultClick,
+      }),
+    [tipByMatch, tipsError, clock, handleTipClick, isOrganizer, handleResultClick],
   );
 
   // A new match: bring its row into view, then drop the highlight.
@@ -93,7 +112,16 @@ export default function MatchesTable({
     setTipByMatch((prev) => new Map(prev).set(tip.match_id, tip));
   };
 
+  const handleResultSaved = (saved: Match, tip: Tip | null) => {
+    setMatchList((prev) => prev.map((match) => (match.id === saved.id ? saved : match)));
+    // The caller's own tip comes back rescored; without one there is nothing to update.
+    if (tip !== null) {
+      setTipByMatch((prev) => new Map(prev).set(tip.match_id, tip));
+    }
+  };
+
   const selectedMatch = matchList.find((match) => match.id === selectedMatchId) ?? null;
+  const resultMatch = matchList.find((match) => match.id === resultMatchId) ?? null;
   const phrase = query.trim();
 
   return (
@@ -163,6 +191,19 @@ export default function MatchesTable({
                 tipTrigger?.focus();
               }}
               now={clock}
+            />
+          )}
+
+          {isOrganizer && (
+            <ResultDialog
+              match={resultMatch}
+              isOpen={resultDialogOpen}
+              onOpenChange={setResultDialogOpen}
+              onSaved={handleResultSaved}
+              onCloseAutoFocus={(event) => {
+                event.preventDefault();
+                resultTrigger?.focus();
+              }}
             />
           )}
         </>

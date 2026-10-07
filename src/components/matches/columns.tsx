@@ -13,6 +13,10 @@ interface MatchColumnsOptions {
   now: number;
   /** Opens the tip dialog for the match; `trigger` gets focus back when the dialog closes. */
   onTipClick: (matchId: number, trigger: HTMLElement) => void;
+  /** Shows the result entry button on started matches. */
+  isOrganizer: boolean;
+  /** Opens the result dialog for the match; `trigger` gets focus back when the dialog closes. */
+  onResultClick: (matchId: number, trigger: HTMLElement) => void;
 }
 
 /** Same order as `listMatches`: kick-off time, then id. TanStack reverses the whole result for `desc`. */
@@ -25,6 +29,10 @@ function isOpen(match: Match, now: number): boolean {
   return now < new Date(match.starts_at).getTime();
 }
 
+function resultText(match: Match): string {
+  return match.score_a !== null && match.score_b !== null ? `${match.score_a}:${match.score_b}` : "";
+}
+
 function statusLabel(open: boolean): string {
   return open ? "otwarte" : "zamknięte";
 }
@@ -34,6 +42,8 @@ export function createMatchColumns({
   showTips,
   now,
   onTipClick,
+  isOrganizer,
+  onResultClick,
 }: MatchColumnsOptions): ColumnDef<Match, string>[] {
   const columns: ColumnDef<Match, string>[] = [
     {
@@ -98,6 +108,58 @@ export function createMatchColumns({
             >
               {value || "brak typu"}
             </Button>
+          </span>
+        );
+      },
+    });
+  }
+
+  columns.push({
+    id: "result",
+    header: "Wynik",
+    enableSorting: false,
+    cell: ({ row }) => {
+      const match = row.original;
+      const value = resultText(match);
+      // Before kick-off nobody can enter a result (RLS), so the organizer sees plain text too.
+      if (isOrganizer && !isOpen(match, now)) {
+        return (
+          <Button
+            type="button"
+            variant="link"
+            size="sm"
+            className="h-auto px-0 text-blue-100/80"
+            aria-haspopup="dialog"
+            data-result={value}
+            onClick={(e) => {
+              onResultClick(match.id, e.currentTarget);
+            }}
+          >
+            {value || "wpisz wynik"}
+          </Button>
+        );
+      }
+      return (
+        <span data-result={value} className={cn(value ? "font-mono text-white" : "text-blue-100/50")}>
+          {value || "—"}
+        </span>
+      );
+    },
+  });
+
+  if (showTips) {
+    columns.push({
+      id: "points",
+      header: "Pkt",
+      enableSorting: false,
+      cell: ({ row }) => {
+        const points = tipByMatch.get(row.original.id)?.points ?? null;
+        return (
+          <span
+            data-points={points === null ? "" : String(points)}
+            className={cn(points === null ? "text-blue-100/50" : "font-semibold text-white")}
+          >
+            {points ?? "—"}
           </span>
         );
       },
