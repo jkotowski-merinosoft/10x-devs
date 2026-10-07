@@ -6,6 +6,7 @@ type SupabaseClient = NonNullable<ReturnType<typeof createClient>>;
 const SAVE_ERROR = "Nie udało się zapisać typu";
 const LOAD_OWN_ERROR = "Nie udało się wczytać Twoich typów";
 const LOAD_MATCH_ERROR = "Nie udało się wczytać typów meczu";
+const LOAD_ONE_ERROR = "Nie udało się wczytać Twojego typu";
 
 interface Profile {
   display_name: string | null;
@@ -24,7 +25,7 @@ export async function listOwnTips(
   // RLS also returns other users' tips for started matches, so filter by user explicitly.
   const { data, error } = await supabase
     .from("tips")
-    .select("match_id, score_a, score_b")
+    .select("match_id, score_a, score_b, points")
     .eq("user_id", userId)
     .overrideTypes<Tip[], { merge: false }>();
 
@@ -43,7 +44,7 @@ export async function listMatchTips(
 ): Promise<{ data: MatchTip[]; error: string | null }> {
   const { data, error } = await supabase
     .from("tips")
-    .select("match_id, user_id, score_a, score_b, profiles(display_name)")
+    .select("match_id, user_id, score_a, score_b, points, profiles(display_name)")
     .eq("match_id", matchId)
     .overrideTypes<MatchTipRow[], { merge: false }>();
 
@@ -72,6 +73,27 @@ export async function listMatchTips(
   return { data: tips, error: null };
 }
 
+/** `{ data: null, error: null }` means the user has no tip on the match. */
+export async function getOwnTip(
+  supabase: SupabaseClient,
+  userId: string,
+  matchId: number,
+): Promise<{ data: Tip | null; error: string | null }> {
+  const { data, error } = await supabase
+    .from("tips")
+    .select("match_id, score_a, score_b, points")
+    .eq("user_id", userId)
+    .eq("match_id", matchId)
+    .maybeSingle<Tip>();
+
+  if (error) {
+    // eslint-disable-next-line no-console
+    console.error(error.message);
+    return { data: null, error: LOAD_ONE_ERROR };
+  }
+  return { data, error: null };
+}
+
 export async function saveTip(
   supabase: SupabaseClient,
   userId: string,
@@ -81,7 +103,7 @@ export async function saveTip(
   const { data, error } = await supabase
     .from("tips")
     .upsert({ ...input, user_id: userId }, { onConflict: "match_id,user_id" })
-    .select("match_id, score_a, score_b")
+    .select("match_id, score_a, score_b, points")
     .single<Tip>();
 
   if (error) {

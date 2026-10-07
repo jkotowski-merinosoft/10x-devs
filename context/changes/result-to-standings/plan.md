@@ -398,29 +398,29 @@ Migracja jest addytywna: nowa kolumna nullable, nowe funkcje, triggery i polityk
 
 #### Automated
 
-- [x] 1.1 Migracje stosują się od zera: `npx supabase db reset`
-- [x] 1.2 `npx astro check` i `npm run lint` przechodzą (bez zmian w TS ta faza nie może ich zepsuć)
+- [x] 1.1 Migracje stosują się od zera: `npx supabase db reset` — 101fecd
+- [x] 1.2 `npx astro check` i `npm run lint` przechodzą (bez zmian w TS ta faza nie może ich zepsuć) — 101fecd
 
 #### Manual
 
-- [x] 1.3 SQL na lokalnym stacku: typ 2:1, wynik meczu 2:1 → `points = exact_points`; wynik 3:0 → `outcome_points`; 0:1 → `0`; usunięcie wyniku → `null`
-- [x] 1.4 Zmiana stawek przez `update league_settings` przelicza `points` rozliczonych typów, a `tips.updated_at` się nie zmienia
-- [x] 1.5 `league_standings()` dla dwóch graczy z równymi punktami i różną liczbą dokładnych daje rank 1 i 2, a przy pełnym remisie 1 i 1
+- [x] 1.3 SQL na lokalnym stacku: typ 2:1, wynik meczu 2:1 → `points = exact_points`; wynik 3:0 → `outcome_points`; 0:1 → `0`; usunięcie wyniku → `null` — 101fecd
+- [x] 1.4 Zmiana stawek przez `update league_settings` przelicza `points` rozliczonych typów, a `tips.updated_at` się nie zmienia — 101fecd
+- [x] 1.5 `league_standings()` dla dwóch graczy z równymi punktami i różną liczbą dokładnych daje rank 1 i 2, a przy pełnym remisie 1 i 1 — 101fecd
 
 ### Phase 2: Wpisanie wyniku i strona meczu
 
 #### Automated
 
-- [ ] 2.1 `npx astro check` przechodzi
-- [ ] 2.2 `npm run lint` przechodzi
-- [ ] 2.3 `npm run build` przechodzi
+- [x] 2.1 `npx astro check` przechodzi
+- [x] 2.2 `npm run lint` przechodzi
+- [x] 2.3 `npm run build` przechodzi
 
 #### Manual
 
-- [ ] 2.4 Organizator na rozpoczętym meczu zapisuje 2:1 i widzi wynik oraz punkty przy typach; poprawka na 1:1 zmienia punkty; „Usuń wynik” usuwa wynik i punkty
-- [ ] 2.5 Pracownik na tej stronie widzi wynik i punkty, ale nie widzi formularza; ręczny POST pracownika wraca z komunikatem organizatora
-- [ ] 2.6 Organizator na meczu przed startem nie widzi formularza wyniku; ręczny POST wraca z komunikatem o rozpoczęciu
-- [ ] 2.7 Zapis i poprawka typu na przyszłym meczu dalej działają (granty kolumnowe nie zepsuły upsertu)
+- [x] 2.4 Organizator na rozpoczętym meczu zapisuje 2:1 i widzi wynik oraz punkty przy typach; poprawka na 1:1 zmienia punkty; „Usuń wynik” usuwa wynik i punkty
+- [x] 2.5 Pracownik na tej stronie widzi wynik i punkty, ale nie widzi formularza; ręczny POST pracownika wraca z komunikatem organizatora
+- [x] 2.6 Organizator na meczu przed startem nie widzi formularza wyniku; ręczny POST wraca z komunikatem o rozpoczęciu
+- [x] 2.7 Zapis i poprawka typu na przyszłym meczu dalej działają (granty kolumnowe nie zepsuły upsertu)
 
 ### Phase 3: Lista i klasyfikacja
 
