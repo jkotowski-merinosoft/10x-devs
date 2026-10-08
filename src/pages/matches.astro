@@ -1,6 +1,7 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import Topbar from "@/components/Topbar.astro";
+import { RESULTS_BEFORE_KICKOFF } from "astro:env/server";
 import { createClient } from "@/lib/supabase";
 import { listMatches } from "@/lib/services/matches";
 import { listOwnTips } from "@/lib/services/tips";
@@ -50,6 +51,7 @@ const { data: stakes } = supabase ? await getStakes(supabase) : { data: null };
           tipsError={tipsError}
           stakes={stakes}
           isOrganizer={isOrganizer}
+          resultsBeforeKickoff={RESULTS_BEFORE_KICKOFF}
           now={Date.now()}
           initialQuery={initialQuery}
           initialSort={initialSort}

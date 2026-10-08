@@ -19,6 +19,8 @@ export default defineConfig({
     schema: {
       SUPABASE_URL: envField.string({ context: "server", access: "secret", optional: true }),
       SUPABASE_KEY: envField.string({ context: "server", access: "secret", optional: true }),
+      // Testing only: lets the organizer enter a result before kick-off. Never set it in production.
+      RESULTS_BEFORE_KICKOFF: envField.boolean({ context: "server", access: "secret", optional: true, default: false }),
     },
   },
 });

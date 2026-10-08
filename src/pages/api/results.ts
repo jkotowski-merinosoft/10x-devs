@@ -1,7 +1,9 @@
 import type { APIRoute } from "astro";
+import { RESULTS_BEFORE_KICKOFF } from "astro:env/server";
 import { createClient } from "@/lib/supabase";
 import { getMatch, setMatchResult } from "@/lib/services/matches";
 import { getOwnTip } from "@/lib/services/tips";
+import { canEnterResult } from "@/lib/results";
 import { matchIdSchema, scoresSchema } from "@/lib/schemas/tip";
 import type { MatchResultInput } from "@/types";
 
@@ -43,8 +45,8 @@ export const POST: APIRoute = async (context) => {
     return failToList("Nie ma takiego meczu", 404);
   }
 
-  // Only for a readable message; RLS enforces the kick-off rule on its own.
-  if (Date.now() < new Date(match.starts_at).getTime()) {
+  // The kick-off rule lives here only; RLS checks just the organizer role. RESULTS_BEFORE_KICKOFF lifts it for testing.
+  if (!canEnterResult(match, Date.now(), RESULTS_BEFORE_KICKOFF)) {
     return failToMatch(match.id, "Wynik można wpisać dopiero po rozpoczęciu meczu", 409);
   }
 

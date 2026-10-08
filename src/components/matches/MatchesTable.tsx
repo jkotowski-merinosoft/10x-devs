@@ -21,6 +21,8 @@ interface Props {
   /** `null` after a failed read: the tip hint falls back to the generic text. */
   stakes: LeagueStakes | null;
   isOrganizer: boolean;
+  /** RESULTS_BEFORE_KICKOFF: the organizer may enter a result before kick-off too (testing). */
+  resultsBeforeKickoff: boolean;
   /** Server time (ms) for the open/closed status, so server and client render the same markup. */
   now: number;
   initialQuery: string;
@@ -39,6 +41,7 @@ export default function MatchesTable({
   tipsError,
   stakes,
   isOrganizer,
+  resultsBeforeKickoff,
   now,
   initialQuery,
   initialSort,
@@ -47,7 +50,8 @@ export default function MatchesTable({
   const [tipByMatch, setTipByMatch] = useState(() => new Map(tips.map((tip) => [tip.match_id, tip])));
   const [selectedMatchId, setSelectedMatchId] = useState<number | null>(null);
   const [tipDialogOpen, setTipDialogOpen] = useState(false);
-  const [highlightId, setHighlightId] = useState<number | null>(null);
+  // `seq` makes a second save of the same row flash again.
+  const [highlight, setHighlight] = useState<{ id: number; seq: number } | null>(null);
   // The dialog has no DialogTrigger, so Radix cannot return focus to the tip button by itself.
   const [tipTrigger, setTipTrigger] = useState<HTMLElement | null>(null);
   const [resultMatchId, setResultMatchId] = useState<number | null>(null);
@@ -79,22 +83,27 @@ export default function MatchesTable({
         now: clock,
         onTipClick: handleTipClick,
         isOrganizer,
+        resultsBeforeKickoff,
         onResultClick: handleResultClick,
       }),
-    [tipByMatch, tipsError, clock, handleTipClick, isOrganizer, handleResultClick],
+    [tipByMatch, tipsError, clock, handleTipClick, isOrganizer, resultsBeforeKickoff, handleResultClick],
   );
 
-  // A new match: bring its row into view, then drop the highlight.
+  // A new match, a saved tip or result: bring its row into view, then drop the highlight.
   useEffect(() => {
-    if (highlightId === null) return;
-    document.querySelector(`[data-match-id="${highlightId}"]`)?.scrollIntoView({ block: "nearest" });
+    if (highlight === null) return;
+    document.querySelector(`[data-match-id="${highlight.id}"]`)?.scrollIntoView({ block: "nearest" });
     const timer = window.setTimeout(() => {
-      setHighlightId(null);
+      setHighlight(null);
     }, HIGHLIGHT_MS);
     return () => {
       window.clearTimeout(timer);
     };
-  }, [highlightId]);
+  }, [highlight]);
+
+  const flashRow = (id: number) => {
+    setHighlight((prev) => ({ id, seq: (prev?.seq ?? 0) + 1 }));
+  };
 
   const handleCreated = (match: Match) => {
     // The local list is incomplete after a failed read; reload to show the full one.
@@ -105,11 +114,12 @@ export default function MatchesTable({
     setMatchList((prev) => [...prev, match]);
     // The new match must be visible even if the current phrase does not match it.
     setQuery("");
-    setHighlightId(match.id);
+    flashRow(match.id);
   };
 
   const handleSaved = (tip: Tip) => {
     setTipByMatch((prev) => new Map(prev).set(tip.match_id, tip));
+    flashRow(tip.match_id);
   };
 
   const handleResultSaved = (saved: Match, tip: Tip | null) => {
@@ -118,6 +128,7 @@ export default function MatchesTable({
     if (tip !== null) {
       setTipByMatch((prev) => new Map(prev).set(tip.match_id, tip));
     }
+    flashRow(saved.id);
   };
 
   const selectedMatch = matchList.find((match) => match.id === selectedMatchId) ?? null;
@@ -173,7 +184,7 @@ export default function MatchesTable({
             globalFilterFn={searchFilter}
             rowProps={(row) => ({
               "data-match-id": String(row.original.id),
-              className: cn("transition-colors duration-700", row.original.id === highlightId && "bg-purple-500/25"),
+              className: cn("transition-colors duration-700", row.original.id === highlight?.id && "bg-purple-500/25"),
             })}
             emptyMessage={matchList.length === 0 || !phrase ? "Brak meczów" : `Brak meczów pasujących do „${phrase}”`}
           />

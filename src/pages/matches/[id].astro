@@ -40,7 +40,6 @@ if (notFound) {
 }
 
 const isOpen = match ? Date.now() < new Date(match.starts_at).getTime() : false;
-const isOrganizer = Astro.locals.role === "organizer";
 const resultText = match?.score_a != null && match.score_b != null ? `${match.score_a}:${match.score_b}` : "";
 const hasResult = resultText !== "";
 const ownTip = tips.find((tip) => tip.user_id === userId);
@@ -48,8 +47,6 @@ const ownTip = tips.find((tip) => tip.user_id === userId);
 const bannerClass = "rounded-lg border border-red-500/30 bg-red-900/30 px-3 py-2 text-sm text-red-300";
 const inputClass =
   "w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-blue-100/40 focus:border-purple-300 focus:outline-none";
-const buttonClass =
-  "rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm transition-colors hover:bg-white/20";
 const linkClass = "text-purple-300 transition-colors hover:text-purple-100 hover:underline";
 ---
 
@@ -94,53 +91,6 @@ const linkClass = "text-purple-300 transition-colors hover:text-purple-100 hover
               </p>
             )}
 
-            {isOrganizer && !isOpen && (
-              <form
-                data-testid="result-form"
-                method="POST"
-                action="/api/results"
-                class="mb-6 grid gap-4 sm:grid-cols-2"
-              >
-                <input type="hidden" name="match_id" value={match.id} />
-                <label class="flex flex-col gap-1 text-sm text-blue-100/80">
-                  {match.side_a}
-                  <input
-                    type="number"
-                    name="score_a"
-                    min="0"
-                    max="99"
-                    step="1"
-                    required
-                    value={match.score_a ?? undefined}
-                    class:list={inputClass}
-                  />
-                </label>
-                <label class="flex flex-col gap-1 text-sm text-blue-100/80">
-                  {match.side_b}
-                  <input
-                    type="number"
-                    name="score_b"
-                    min="0"
-                    max="99"
-                    step="1"
-                    required
-                    value={match.score_b ?? undefined}
-                    class:list={inputClass}
-                  />
-                </label>
-                <div class="flex gap-2 sm:col-span-2">
-                  <button type="submit" class:list={buttonClass}>
-                    Zapisz wynik
-                  </button>
-                  {hasResult && (
-                    <button type="submit" name="action" value="clear" formnovalidate class:list={buttonClass}>
-                      Usuń wynik
-                    </button>
-                  )}
-                </div>
-              </form>
-            )}
-
             {isOpen ? (
               <form method="POST" action="/api/tips" class="grid gap-4 sm:grid-cols-2">
                 <input type="hidden" name="match_id" value={match.id} />
@@ -171,6 +121,7 @@ const linkClass = "text-purple-300 transition-colors hover:text-purple-100 hover
                   />
                 </label>
                 <p class="text-sm text-blue-100/60 sm:col-span-2">{stakesHint(stakes)}</p>
+                <p class="text-sm text-blue-100/60 sm:col-span-2">Typy innych osób pojawią się po rozpoczęciu meczu.</p>
                 <div class="sm:col-span-2">
                   <button
                     type="submit"

@@ -48,7 +48,7 @@ export function TipDialog({ match, tip, stakes, isOpen, onOpenChange, onSaved, o
         <DialogContent onCloseAutoFocus={onCloseAutoFocus}>
           <DialogHeader>
             <DialogTitle>
-              {match.side_a} – {match.side_b}
+              Twój typ: {match.side_a} – {match.side_b}
             </DialogTitle>
             <DialogDescription>{formatWarsaw(match.starts_at)}</DialogDescription>
             <p className={cn("text-sm", bettingOpen ? "text-green-300" : "text-blue-100/60")}>

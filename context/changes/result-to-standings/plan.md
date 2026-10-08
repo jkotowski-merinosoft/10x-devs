@@ -390,6 +390,22 @@ Migracja jest addytywna: nowa kolumna nullable, nowe funkcje, triggery i polityk
 - Wzorzec endpointu JSON i redirect: `src/pages/api/tips.ts`
 - Wzorzec dialogu: `src/components/matches/TipDialog.tsx`, `src/components/matches/MatchesTable.tsx`
 
+## Deviations
+
+Poprawki po ręcznym sprawdzeniu faz 1–3 (2026-10-08), przed fazą 4. Bloki Phase powyżej pozostają w wersji pierwotnej.
+
+- **Kolejność kolumn `/matches`**: Mecz, Data, Wynik, Twój typ, Pkt, Status (Wynik przed typem).
+- **Strona meczu bez formularza wyniku**: `/matches/[id]` pokazuje tylko „Wynik: …” (`data-testid="match-result"`), bez `data-testid="result-form"`. Wynik wpisuje organizator wyłącznie z dialogu na liście. `POST /api/results` z formularza HTML dalej działa (redirect na `/matches/{id}`), więc kroki smoke z redirectem zostają. Przed startem pod formularzem typu jest zdanie „Typy innych osób pojawią się po rozpoczęciu meczu.”
+- **Tytuły dialogów**: „Wynik meczu: A – B” z opisem, że to końcowy wynik, a nie typ; „Twój typ: A – B”.
+- **Wynik przed startem — `RESULTS_BEFORE_KICKOFF`** (`astro:env/server`, boolean, domyślnie `false`, tylko do testów): gdy włączony, organizator wpisuje wynik w każdej chwili. Reguła czasu jest w jednym miejscu, `canEnterResult()` w `src/lib/results.ts`, z której korzystają endpoint (409) i przycisk w kolumnie Wynik. Migracja `20261008000000_results_any_time.sql` zmienia politykę `matches_update_result_organizer` na samo `is_organizer()`: baza pilnuje roli i kolumn (grant `score_a, score_b`), a nie czasu. To zastępuje „Wymusza to RLS” z Desired End State.
+- **Podświetlenie wiersza**: po zapisie typu i wyniku wiersz miga 2 s, tak jak po dodaniu meczu.
+- **Wpływ na fazę 4**:
+  - Krok smoke 3 (`PATCH /rest/v1/matches` pracownika) bez zmian.
+  - Krok 5 (organizator na przyszłym meczu → `?error=`) zakłada `RESULTS_BEFORE_KICKOFF` wyłączony. Przy włączonym przełączniku jego FAIL ma podpowiadać wyłączenie przełącznika.
+  - Nie dodawać kroku RLS „organizator przed startem przez REST”, bo baza na to pozwala.
+  - README opisuje przełącznik.
+  - Przed `npx supabase db reset` (4.1) zapytać użytkownika, bo reset kasuje lokalne dane testowe.
+
 ## Progress
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.
@@ -426,16 +442,16 @@ Migracja jest addytywna: nowa kolumna nullable, nowe funkcje, triggery i polityk
 
 #### Automated
 
-- [x] 3.1 `npx astro check` przechodzi
-- [x] 3.2 `npm run lint` przechodzi
-- [x] 3.3 `npm run build` przechodzi
+- [x] 3.1 `npx astro check` przechodzi — 6242e98
+- [x] 3.2 `npm run lint` przechodzi — 6242e98
+- [x] 3.3 `npm run build` przechodzi — 6242e98
 
 #### Manual
 
-- [ ] 3.4 Organizator wpisuje, poprawia i usuwa wynik z dialogu na liście; wiersz od razu pokazuje wynik i własne punkty, a fokus wraca na przycisk
-- [ ] 3.5 Pracownik na liście widzi Wynik i Pkt bez przycisku wyniku; na meczu przed startem kolumna Wynik pokazuje „—”
-- [ ] 3.6 `/league` pokazuje klasyfikację z poprawną kolejnością i wspólnym miejscem przy pełnym remisie; po zmianie stawek punkty w klasyfikacji i na liście się zmieniają
-- [ ] 3.7 Widok mobilny (wąskie okno) listy i klasyfikacji jest czytelny, bez poziomego przewijania strony
+- [x] 3.4 Organizator wpisuje, poprawia i usuwa wynik z dialogu na liście; wiersz od razu pokazuje wynik i własne punkty, a fokus wraca na przycisk — 6242e98
+- [x] 3.5 Pracownik na liście widzi Wynik i Pkt bez przycisku wyniku; na meczu przed startem kolumna Wynik pokazuje „—” — 6242e98
+- [x] 3.6 `/league` pokazuje klasyfikację z poprawną kolejnością i wspólnym miejscem przy pełnym remisie; po zmianie stawek punkty w klasyfikacji i na liście się zmieniają — 6242e98
+- [x] 3.7 Widok mobilny (wąskie okno) listy i klasyfikacji jest czytelny, bez poziomego przewijania strony — 6242e98
 
 ### Phase 4: Smoke i dokumentacja
 

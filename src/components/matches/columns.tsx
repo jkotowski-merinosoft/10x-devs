@@ -1,6 +1,7 @@
 import type { ColumnDef, SortingFn } from "@tanstack/react-table";
 import { SortableHeader } from "@/components/data-table/SortableHeader";
 import { Button } from "@/components/ui/button";
+import { canEnterResult } from "@/lib/results";
 import { formatWarsaw } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import type { Match, Tip } from "@/types";
@@ -13,8 +14,10 @@ interface MatchColumnsOptions {
   now: number;
   /** Opens the tip dialog for the match; `trigger` gets focus back when the dialog closes. */
   onTipClick: (matchId: number, trigger: HTMLElement) => void;
-  /** Shows the result entry button on started matches. */
+  /** Shows the result entry button on matches whose result may be entered. */
   isOrganizer: boolean;
+  /** RESULTS_BEFORE_KICKOFF: the organizer may enter a result before kick-off too (testing). */
+  resultsBeforeKickoff: boolean;
   /** Opens the result dialog for the match; `trigger` gets focus back when the dialog closes. */
   onResultClick: (matchId: number, trigger: HTMLElement) => void;
 }
@@ -43,6 +46,7 @@ export function createMatchColumns({
   now,
   onTipClick,
   isOrganizer,
+  resultsBeforeKickoff,
   onResultClick,
 }: MatchColumnsOptions): ColumnDef<Match, string>[] {
   const columns: ColumnDef<Match, string>[] = [
@@ -76,6 +80,39 @@ export function createMatchColumns({
       cell: ({ row }) => <span className="text-blue-100/70">{formatWarsaw(row.original.starts_at)}</span>,
     },
   ];
+
+  columns.push({
+    id: "result",
+    header: "Wynik",
+    enableSorting: false,
+    cell: ({ row }) => {
+      const match = row.original;
+      const value = resultText(match);
+      // Before kick-off the organizer sees plain text too, unless RESULTS_BEFORE_KICKOFF is on.
+      if (isOrganizer && canEnterResult(match, now, resultsBeforeKickoff)) {
+        return (
+          <Button
+            type="button"
+            variant="link"
+            size="sm"
+            className="h-auto px-0 text-blue-100/80"
+            aria-haspopup="dialog"
+            data-result={value}
+            onClick={(e) => {
+              onResultClick(match.id, e.currentTarget);
+            }}
+          >
+            {value || "wpisz wynik"}
+          </Button>
+        );
+      }
+      return (
+        <span data-result={value} className={cn(value ? "font-mono text-white" : "text-blue-100/50")}>
+          {value || "—"}
+        </span>
+      );
+    },
+  });
 
   if (showTips) {
     columns.push({
@@ -113,39 +150,6 @@ export function createMatchColumns({
       },
     });
   }
-
-  columns.push({
-    id: "result",
-    header: "Wynik",
-    enableSorting: false,
-    cell: ({ row }) => {
-      const match = row.original;
-      const value = resultText(match);
-      // Before kick-off nobody can enter a result (RLS), so the organizer sees plain text too.
-      if (isOrganizer && !isOpen(match, now)) {
-        return (
-          <Button
-            type="button"
-            variant="link"
-            size="sm"
-            className="h-auto px-0 text-blue-100/80"
-            aria-haspopup="dialog"
-            data-result={value}
-            onClick={(e) => {
-              onResultClick(match.id, e.currentTarget);
-            }}
-          >
-            {value || "wpisz wynik"}
-          </Button>
-        );
-      }
-      return (
-        <span data-result={value} className={cn(value ? "font-mono text-white" : "text-blue-100/50")}>
-          {value || "—"}
-        </span>
-      );
-    },
-  });
 
   if (showTips) {
     columns.push({

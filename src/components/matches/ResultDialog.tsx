@@ -45,9 +45,12 @@ export function ResultDialog({ match, isOpen, onOpenChange, onSaved, onCloseAuto
         <DialogContent onCloseAutoFocus={onCloseAutoFocus}>
           <DialogHeader>
             <DialogTitle>
-              {match.side_a} – {match.side_b}
+              Wynik meczu: {match.side_a} – {match.side_b}
             </DialogTitle>
-            <DialogDescription>{formatWarsaw(match.starts_at)}</DialogDescription>
+            <DialogDescription>
+              {formatWarsaw(match.starts_at)}. Wpisujesz końcowy wynik meczu (nie swój typ). Punkty przeliczą się
+              wszystkim.
+            </DialogDescription>
           </DialogHeader>
 
           {/* Content unmounts on close, so every opening starts from the current result. */}
