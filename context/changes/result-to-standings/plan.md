@@ -457,12 +457,12 @@ Poprawki po ręcznym sprawdzeniu faz 1–3 (2026-10-08), przed fazą 4. Bloki Ph
 
 #### Automated
 
-- [x] 4.1 `npx supabase db reset` przechodzi
-- [x] 4.2 `npm run lint` przechodzi
-- [x] 4.3 `npm run build` przechodzi
-- [x] 4.4 `npm run smoke:local` przeciw `npm run dev:local` kończy się bez FAIL i SKIP
+- [x] 4.1 `npx supabase db reset` przechodzi — 7df9d55
+- [x] 4.2 `npm run lint` przechodzi — 7df9d55
+- [x] 4.3 `npm run build` przechodzi — 7df9d55
+- [x] 4.4 `npm run smoke:local` przeciw `npm run dev:local` kończy się bez FAIL i SKIP — 7df9d55
 
 #### Manual
 
-- [x] 4.5 Opis w `CLAUDE.md` § Verification zgadza się z kolejnością kroków w `scripts/smoke.mjs`
-- [x] 4.6 Po przebiegu smoke w lokalnej bazie nie ma meczów ani kont smoke, a stawki są takie jak przed przebiegiem
+- [x] 4.5 Opis w `CLAUDE.md` § Verification zgadza się z kolejnością kroków w `scripts/smoke.mjs` — 7df9d55
+- [x] 4.6 Po przebiegu smoke w lokalnej bazie nie ma meczów ani kont smoke, a stawki są takie jak przed przebiegiem — 7df9d55
