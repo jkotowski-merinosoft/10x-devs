@@ -162,25 +162,25 @@ Migracja jest idempotentna (`drop function if exists`) i nie rusza danych. Produ
 
 #### Automated
 
-- [x] 1.1 Migracje stosują się od zera: `npx supabase db reset` (zapytaj przed resetem; alternatywnie `npx supabase migration up`)
-- [x] 1.2 `npx astro check` przechodzi
-- [x] 1.3 `npm run lint` przechodzi
-- [x] 1.4 `npm run build` przechodzi
+- [x] 1.1 Migracje stosują się od zera: `npx supabase db reset` (zapytaj przed resetem; alternatywnie `npx supabase migration up`) — 20ffafc
+- [x] 1.2 `npx astro check` przechodzi — 20ffafc
+- [x] 1.3 `npm run lint` przechodzi — 20ffafc
+- [x] 1.4 `npm run build` przechodzi — 20ffafc
 
 #### Manual
 
-- [x] 1.5 Na lokalnym stacku osoba z typem na mecz z wynikiem i typem na mecz bez wyniku ma w kolumnie „Typy” 1, a po usunięciu wyniku 0 i dalej jest w tabeli
-- [x] 1.6 Kolejność i miejsca w klasyfikacji są takie same jak przed zmianą (ten sam zestaw danych)
-- [x] 1.7 Widok mobilny `/league` (wąskie okno) jest czytelny, bez poziomego przewijania strony
+- [x] 1.5 Na lokalnym stacku osoba z typem na mecz z wynikiem i typem na mecz bez wyniku ma w kolumnie „Typy” 1, a po usunięciu wyniku 0 i dalej jest w tabeli — 20ffafc
+- [x] 1.6 Kolejność i miejsca w klasyfikacji są takie same jak przed zmianą (ten sam zestaw danych) — 20ffafc
+- [x] 1.7 Widok mobilny `/league` (wąskie okno) jest czytelny, bez poziomego przewijania strony — 20ffafc
 
 ### Phase 2: Smoke i dokumentacja
 
 #### Automated
 
-- [ ] 2.1 `npm run lint` przechodzi
-- [ ] 2.2 `npm run build` przechodzi
-- [ ] 2.3 `npm run smoke:local` przeciw `npm run dev:local` kończy się bez FAIL i SKIP
+- [x] 2.1 `npm run lint` przechodzi
+- [x] 2.2 `npm run build` przechodzi
+- [x] 2.3 `npm run smoke:local` przeciw `npm run dev:local` kończy się bez FAIL i SKIP
 
 #### Manual
 
-- [ ] 2.4 Opis w `CLAUDE.md` § Verification zgadza się z krokami w `scripts/smoke.mjs`
+- [x] 2.4 Opis w `CLAUDE.md` § Verification zgadza się z krokami w `scripts/smoke.mjs`

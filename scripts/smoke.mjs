@@ -156,7 +156,7 @@ async function tipPoints(id, userId) {
   return { result, points: Array.isArray(result.json) ? result.json.map((tip) => tip.points) : null };
 }
 
-// Reads data-rank / data-points / data-exact of the data-user row of the standings table on /league.
+// Reads data-rank / data-points / data-exact / data-settled of the data-user row of the standings table on /league.
 function standingsRow(body, user) {
   const row = body
     .split("<tr")
@@ -164,11 +164,16 @@ function standingsRow(body, user) {
     .find((chunk) => chunk.includes(`data-user="${user}"`));
   if (row === undefined) return null;
   const read = (name) => Number(new RegExp(`${name}="(\\d+)"`).exec(row)?.[1] ?? Number.NaN);
-  return { rank: read("data-rank"), points: read("data-points"), exact: read("data-exact") };
+  return {
+    rank: read("data-rank"),
+    points: read("data-points"),
+    exact: read("data-exact"),
+    settled: read("data-settled"),
+  };
 }
 
 function describeStanding(row) {
-  return row ? `#${row.rank} ${row.points} pkt ${row.exact} exact` : "missing";
+  return row ? `#${row.rank} ${row.points} pkt ${row.exact} exact ${row.settled} settled` : "missing";
 }
 
 // Reads data-exact / data-outcome of the data-testid="league-stakes" block on /league.
@@ -613,8 +618,11 @@ const organizerSteps = [
       const ok =
         employee?.points === savedStakes?.exact_points &&
         employee?.exact === 1 &&
+        // The employee's tip on the future match has no result yet, so it does not count.
+        employee?.settled === 1 &&
         organizer?.points === savedStakes?.outcome_points &&
         organizer?.exact === 0 &&
+        organizer?.settled === 1 &&
         employee.rank < organizer.rank;
       return {
         ...page,
@@ -743,6 +751,17 @@ const organizerSteps = [
   [
     "list shows cleared result and points",
     async () => withAttributes(await matchRow(pastMatch.side_a), ['data-result=""', 'data-points=""']),
+    { status: 200 },
+  ],
+  [
+    "league counts no settled tips after clearing",
+    async () => {
+      const page = await request("/league");
+      // The employee still has tips on both matches, so it stays in the standings with none settled.
+      const employee = standingsRow(page.body, maskedEmail);
+      const ok = employee?.settled === 0;
+      return { ...page, status: ok ? page.status : 0, location: ok ? "" : `employee ${describeStanding(employee)}` };
+    },
     { status: 200 },
   ],
   [
