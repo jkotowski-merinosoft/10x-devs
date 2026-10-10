@@ -57,4 +57,6 @@ export interface StandingsRow {
   display_name: string | null;
   points: number;
   exact_count: number;
+  /** Tips on matches that already have a result. */
+  settled_count: number;
 }

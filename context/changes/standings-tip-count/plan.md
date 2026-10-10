@@ -162,16 +162,16 @@ Migracja jest idempotentna (`drop function if exists`) i nie rusza danych. Produ
 
 #### Automated
 
-- [ ] 1.1 Migracje stosują się od zera: `npx supabase db reset` (zapytaj przed resetem; alternatywnie `npx supabase migration up`)
-- [ ] 1.2 `npx astro check` przechodzi
-- [ ] 1.3 `npm run lint` przechodzi
-- [ ] 1.4 `npm run build` przechodzi
+- [x] 1.1 Migracje stosują się od zera: `npx supabase db reset` (zapytaj przed resetem; alternatywnie `npx supabase migration up`)
+- [x] 1.2 `npx astro check` przechodzi
+- [x] 1.3 `npm run lint` przechodzi
+- [x] 1.4 `npm run build` przechodzi
 
 #### Manual
 
-- [ ] 1.5 Na lokalnym stacku osoba z typem na mecz z wynikiem i typem na mecz bez wyniku ma w kolumnie „Typy” 1, a po usunięciu wyniku 0 i dalej jest w tabeli
-- [ ] 1.6 Kolejność i miejsca w klasyfikacji są takie same jak przed zmianą (ten sam zestaw danych)
-- [ ] 1.7 Widok mobilny `/league` (wąskie okno) jest czytelny, bez poziomego przewijania strony
+- [x] 1.5 Na lokalnym stacku osoba z typem na mecz z wynikiem i typem na mecz bez wyniku ma w kolumnie „Typy” 1, a po usunięciu wyniku 0 i dalej jest w tabeli
+- [x] 1.6 Kolejność i miejsca w klasyfikacji są takie same jak przed zmianą (ten sam zestaw danych)
+- [x] 1.7 Widok mobilny `/league` (wąskie okno) jest czytelny, bez poziomego przewijania strony
 
 ### Phase 2: Smoke i dokumentacja
 

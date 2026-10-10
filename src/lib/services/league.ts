@@ -14,6 +14,7 @@ interface StandingsRpcRow {
   display_name: string | null;
   points: number | string;
   exact_count: number | string;
+  settled_count: number | string;
 }
 
 /** The single league_settings row is seeded by its migration, so a missing row is an error too. */
@@ -79,6 +80,7 @@ export async function listStandings(supabase: SupabaseClient): Promise<{ data: S
       display_name: row.display_name,
       points: Number(row.points),
       exact_count: Number(row.exact_count),
+      settled_count: Number(row.settled_count),
     })),
     error: null,
   };
