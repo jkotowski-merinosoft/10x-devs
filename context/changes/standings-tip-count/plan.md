@@ -177,10 +177,10 @@ Migracja jest idempotentna (`drop function if exists`) i nie rusza danych. Produ
 
 #### Automated
 
-- [x] 2.1 `npm run lint` przechodzi
-- [x] 2.2 `npm run build` przechodzi
-- [x] 2.3 `npm run smoke:local` przeciw `npm run dev:local` kończy się bez FAIL i SKIP
+- [x] 2.1 `npm run lint` przechodzi — f64d90e
+- [x] 2.2 `npm run build` przechodzi — f64d90e
+- [x] 2.3 `npm run smoke:local` przeciw `npm run dev:local` kończy się bez FAIL i SKIP — f64d90e
 
 #### Manual
 
-- [x] 2.4 Opis w `CLAUDE.md` § Verification zgadza się z krokami w `scripts/smoke.mjs`
+- [x] 2.4 Opis w `CLAUDE.md` § Verification zgadza się z krokami w `scripts/smoke.mjs` — f64d90e
