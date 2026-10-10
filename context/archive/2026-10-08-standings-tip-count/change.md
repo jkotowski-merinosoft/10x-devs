@@ -1,7 +1,8 @@
 ---
 change_id: standings-tip-count
 title: Liczba rozliczonych typów w klasyfikacji
-status: implemented
+status: archived
+archived_at: 2026-10-10T20:45:12Z
 created: 2026-10-08
 updated: 2026-10-10
 ---
