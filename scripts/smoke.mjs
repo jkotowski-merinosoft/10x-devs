@@ -52,7 +52,7 @@ function storeCookies(response, cookies) {
   }
 }
 
-async function request(path, { method = "GET", form, cookies = jar } = {}) {
+async function request(path, { method = "GET", form, cookies = jar, accept } = {}) {
   const response = await fetch(BASE_URL + path, {
     method,
     redirect: "manual",
@@ -60,6 +60,7 @@ async function request(path, { method = "GET", form, cookies = jar } = {}) {
       Cookie: cookieHeader(cookies),
       Origin: BASE_URL,
       ...(form ? { "Content-Type": "application/x-www-form-urlencoded" } : {}),
+      ...(accept ? { Accept: accept } : {}),
     },
     body: form ? new URLSearchParams(form).toString() : undefined,
   });
@@ -126,6 +127,48 @@ async function matchId(sideA) {
     key: SUPABASE_SERVICE_ROLE_KEY,
   });
   return Array.isArray(result.json) && result.json.length === 1 ? String(result.json[0].id) : "";
+}
+
+// Passes only when the page body has every attribute; the first missing one is reported.
+function withAttributes(page, attributes) {
+  if (page.status !== 200) return page;
+  const missing = attributes.find((attribute) => !page.body.includes(attribute));
+  return missing ? { ...page, status: 0, location: `missing ${missing}` } : page;
+}
+
+// Passes only when the service role reads no result on the match.
+async function resultCleared(id) {
+  const result = await supabase(`/rest/v1/matches?select=score_a,score_b&id=eq.${id}`, {
+    key: SUPABASE_SERVICE_ROLE_KEY,
+  });
+  const row = Array.isArray(result.json) && result.json.length === 1 ? result.json[0] : null;
+  if (!row) return { ...result, status: 0 };
+  const cleared = row.score_a === null && row.score_b === null;
+  return { status: cleared ? 200 : 0, location: cleared ? "" : `result ${row.score_a}:${row.score_b}` };
+}
+
+// Reads the points of the tips on one match through the service role (optionally of one user).
+async function tipPoints(id, userId) {
+  const filter = userId ? `&user_id=eq.${userId}` : "";
+  const result = await supabase(`/rest/v1/tips?select=points&match_id=eq.${id}${filter}`, {
+    key: SUPABASE_SERVICE_ROLE_KEY,
+  });
+  return { result, points: Array.isArray(result.json) ? result.json.map((tip) => tip.points) : null };
+}
+
+// Reads data-rank / data-points / data-exact of the data-user row of the standings table on /league.
+function standingsRow(body, user) {
+  const row = body
+    .split("<tr")
+    .slice(1)
+    .find((chunk) => chunk.includes(`data-user="${user}"`));
+  if (row === undefined) return null;
+  const read = (name) => Number(new RegExp(`${name}="(\\d+)"`).exec(row)?.[1] ?? Number.NaN);
+  return { rank: read("data-rank"), points: read("data-points"), exact: read("data-exact") };
+}
+
+function describeStanding(row) {
+  return row ? `#${row.rank} ${row.points} pkt ${row.exact} exact` : "missing";
 }
 
 // Reads data-exact / data-outcome of the data-testid="league-stakes" block on /league.
@@ -212,6 +255,16 @@ const steps = [
     "save tip redirects anonymous user",
     () =>
       request("/api/tips", {
+        method: "POST",
+        form: { match_id: "1", score_a: "1", score_b: "0" },
+        cookies: new Map(),
+      }),
+    { status: 302, location: "/auth/signin" },
+  ],
+  [
+    "save result redirects anonymous user",
+    () =>
+      request("/api/results", {
         method: "POST",
         form: { match_id: "1", score_a: "1", score_b: "0" },
         cookies: new Map(),
@@ -422,6 +475,72 @@ const organizerSteps = [
     { status: 200 },
   ],
   [
+    "save result rejected for employee",
+    async () => {
+      const response = await request("/api/results", {
+        method: "POST",
+        form: { match_id: pastId, score_a: "2", score_b: "0" },
+      });
+      const stored = await resultCleared(pastId);
+      return stored.status === 200 ? response : { ...response, status: 0, location: stored.location };
+    },
+    () => ({
+      status: 302,
+      location: `/matches/${pastId}?error=${encodeURIComponent("Tylko organizator może wpisywać wyniki")}`,
+    }),
+  ],
+  [
+    "RLS blocks changing result by employee",
+    async () => {
+      const { result, token } = await apiSession(email);
+      if (!token) return { ...result, status: 0 };
+      const patched = await supabase(`/rest/v1/matches?id=eq.${pastId}`, {
+        method: "PATCH",
+        token,
+        body: { score_a: 2, score_b: 0 },
+        prefer: "return=representation",
+      });
+      // RLS filters the row out (200 with an empty array) or the grant refuses (401/403).
+      const refused =
+        [401, 403].includes(patched.status) ||
+        (patched.status === 200 && Array.isArray(patched.json) && patched.json.length === 0);
+      if (!refused) return { ...patched, status: 0 };
+      return resultCleared(pastId);
+    },
+    { status: 200 },
+  ],
+  [
+    "RLS rejects writing own tip points",
+    async () => {
+      const { result, token, userId } = await apiSession(email);
+      if (!token) return { ...result, status: 0 };
+      // The tip is the employee's own and still open, so only the column grant can refuse.
+      return supabase(`/rest/v1/tips?match_id=eq.${futureId}&user_id=eq.${userId}`, {
+        method: "PATCH",
+        token,
+        body: { points: 99 },
+      });
+    },
+    { status: [401, 403] },
+  ],
+  [
+    "save result rejected before kick-off",
+    async () => {
+      const response = await request("/api/results", {
+        method: "POST",
+        form: { match_id: futureId, score_a: "1", score_b: "0" },
+        cookies: organizerJar,
+      });
+      // A redirect without an error means the result was saved: the kick-off rule is off.
+      if (response.location !== `/matches/${futureId}`) return response;
+      return { ...response, location: `${response.location} (is RESULTS_BEFORE_KICKOFF enabled?)` };
+    },
+    () => ({
+      status: 302,
+      location: `/matches/${futureId}?error=${encodeURIComponent("Wynik można wpisać dopiero po rozpoczęciu meczu")}`,
+    }),
+  ],
+  [
     "match page hides other tips before kick-off",
     () => request(`/matches/${futureId}`, { cookies: organizerJar }),
     { status: 200, notContains: maskedEmail },
@@ -441,6 +560,69 @@ const organizerSteps = [
     // The organizer's 1:0 is readable after kick-off, but the list filters by user.
     () => matchRow(pastMatch.side_a),
     { status: 200, contains: 'data-tip=""', notContains: 'data-tip="1:0"' },
+  ],
+  [
+    "admin adds employee tip after kick-off",
+    // Only now: the step above expects the employee to have no tip on the started match.
+    async () => {
+      const employee = await apiSession(email);
+      if (!employee.userId) return { ...employee.result, status: 0 };
+      return supabase("/rest/v1/tips", {
+        method: "POST",
+        key: SUPABASE_SERVICE_ROLE_KEY,
+        body: { match_id: Number(pastId), user_id: employee.userId, score_a: 2, score_b: 0 },
+      });
+    },
+    { status: 201 },
+  ],
+  [
+    "organizer saves result",
+    () =>
+      request("/api/results", {
+        method: "POST",
+        form: { match_id: pastId, score_a: "2", score_b: "0" },
+        cookies: organizerJar,
+      }),
+    () => ({ status: 302, location: `/matches/${pastId}`, notLocation: "?error=" }),
+  ],
+  [
+    "list shows result and exact points",
+    async () =>
+      withAttributes(await matchRow(pastMatch.side_a), [
+        'data-result="2:0"',
+        `data-points="${savedStakes?.exact_points}"`,
+      ]),
+    { status: 200 },
+  ],
+  [
+    "admin reads outcome points of organizer tip",
+    async () => {
+      const { result, points } = await tipPoints(pastId, organizerId);
+      if (!points) return { ...result, status: 0 };
+      const ok = points.length === 1 && points[0] === savedStakes?.outcome_points;
+      return { status: ok ? 200 : 0, location: ok ? "" : `organizer points ${points.join(",")}` };
+    },
+    { status: 200 },
+  ],
+  [
+    "league ranks employee above organizer",
+    async () => {
+      const page = await request("/league");
+      const employee = standingsRow(page.body, maskedEmail);
+      const organizer = standingsRow(page.body, maskedOrganizerEmail);
+      const ok =
+        employee?.points === savedStakes?.exact_points &&
+        employee?.exact === 1 &&
+        organizer?.points === savedStakes?.outcome_points &&
+        organizer?.exact === 0 &&
+        employee.rank < organizer.rank;
+      return {
+        ...page,
+        status: ok ? page.status : 0,
+        location: ok ? "" : `employee ${describeStanding(employee)}, organizer ${describeStanding(organizer)}`,
+      };
+    },
+    { status: 200 },
   ],
   [
     "match page shows masked tips after kick-off",
@@ -508,6 +690,70 @@ const organizerSteps = [
     "match page shows saved stakes",
     () => request(`/matches/${futureId}`),
     () => ({ status: 200, contains: `Dokładny wynik: ${newStakes?.exact_points} pkt` }),
+  ],
+  [
+    "list shows points rescored by new stakes",
+    () => matchRow(pastMatch.side_a),
+    () => ({ status: 200, contains: `data-points="${newStakes?.exact_points}"` }),
+  ],
+  [
+    "organizer corrects result as JSON",
+    async () => {
+      const response = await request("/api/results", {
+        method: "POST",
+        form: { match_id: pastId, score_a: "1", score_b: "0" },
+        cookies: organizerJar,
+        accept: "application/json",
+      });
+      let json = null;
+      try {
+        json = JSON.parse(response.body);
+      } catch {
+        // non-JSON body
+      }
+      // The response carries the organizer's own tip, 1:0, now the exact score.
+      const ok = json?.match?.score_a === 1 && json?.tip?.points === newStakes?.exact_points;
+      return {
+        ...response,
+        status: ok ? response.status : 0,
+        location: ok ? "" : `score_a ${json?.match?.score_a}, tip points ${json?.tip?.points}`,
+      };
+    },
+    { status: 200 },
+  ],
+  [
+    "list shows outcome points after correction",
+    async () =>
+      withAttributes(await matchRow(pastMatch.side_a), [
+        'data-result="1:0"',
+        `data-points="${newStakes?.outcome_points}"`,
+      ]),
+    { status: 200 },
+  ],
+  [
+    "organizer clears result",
+    () =>
+      request("/api/results", {
+        method: "POST",
+        form: { match_id: pastId, action: "clear" },
+        cookies: organizerJar,
+      }),
+    () => ({ status: 302, location: `/matches/${pastId}`, notLocation: "?error=" }),
+  ],
+  [
+    "list shows cleared result and points",
+    async () => withAttributes(await matchRow(pastMatch.side_a), ['data-result=""', 'data-points=""']),
+    { status: 200 },
+  ],
+  [
+    "admin reads cleared points",
+    async () => {
+      const { result, points } = await tipPoints(pastId);
+      if (!points) return { ...result, status: 0 };
+      const ok = points.length === 2 && points.every((value) => value === null);
+      return { status: ok ? 200 : 0, location: ok ? "" : `points ${points.join(",")}` };
+    },
+    { status: 200 },
   ],
   [
     "cleanup restores stakes and removes smoke data",

@@ -139,11 +139,19 @@ npx supabase db push
 
 ### Roles
 
-Every account gets a `public.profiles` row with the `employee` role. Only organizers can add matches. There is no in-app way to change a role — grant the organizer role with SQL (Supabase SQL editor or `psql`):
+Every account gets a `public.profiles` row with the `employee` role. Only organizers can add matches, enter match results and change the league stakes. There is no in-app way to change a role — grant the organizer role with SQL (Supabase SQL editor or `psql`):
 
 ```sql
 update public.profiles set role = 'organizer' where user_id = (select id from auth.users where email = '<email>');
 ```
+
+### Results, points and standings
+
+The organizer enters, corrects and clears a match result from the result dialog on `/matches` (`POST /api/results`), only once the match has started. The database scores every tip itself (`public.tip_points()` and triggers in `supabase/migrations/20261007120000_points_and_standings.sql`): the league's exact-score stake for the exact score, the outcome stake for the right winner or a draw with another score, 0 for a wrong tip, and no points while the match has no result. Changing the result rescores that match's tips; changing the stakes on `/league` rescores every scored tip of the season. Clients cannot write `points`, and only an organizer can write a result (RLS and a column grant on `score_a`, `score_b`).
+
+`/league` shows the standings of everyone with at least one tip: by points, then by the number of exact scores; a full tie shares the place.
+
+`RESULTS_BEFORE_KICKOFF=true` (server env, `.env` / `.dev.vars`, default off) lets the organizer enter a result before kick-off too. It is for manual testing only: the kick-off rule lives in the app (`canEnterResult()` in `src/lib/results.ts`), not in the database, so never set it in production. With it on, the smoke step "save result rejected before kick-off" fails.
 
 ### Email confirmation in local development
 
@@ -195,7 +203,7 @@ BASE_URL=http://localhost:4321 npm run smoke
 
 It needs a reachable Supabase instance (local or cloud) with email confirmation disabled. It also checks `/matches` and `POST /api/matches` for anonymous users and for an employee (list visible, no add form, adding rejected).
 
-The organizer steps (admin creates an organizer account, the organizer adds a match, the employee sees it, and RLS rejects a direct insert by the employee) need extra shell variables. They are used only by the script — never put the service role key in `.env` or `.dev.vars`:
+The organizer steps (admin creates an organizer account, the organizer adds a match, the employee sees it, tips and their visibility, the organizer enters, corrects and clears a result and the points and standings follow it and the stakes, and RLS rejects direct writes by the employee) need extra shell variables. The full list of steps is in `CLAUDE.md` § Verification. They are used only by the script — never put the service role key in `.env` or `.dev.vars`:
 
 | Variable                    | Description                                                       |
 | --------------------------- | ----------------------------------------------------------------- |
