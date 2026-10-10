@@ -4,13 +4,16 @@
 // they are skipped, unless SMOKE_REQUIRE_ADMIN=1. The service role key is used only by this script.
 // With the service role key the script deletes its matches (their tips cascade) and accounts at the end,
 // after writing back the league stakes it remembered (they are shared, not created per run).
-// Never run it against production.
+// Never run it against production: organizer steps refuse a non-local SUPABASE_URL unless SMOKE_ALLOW_REMOTE=1
+// (a non-production remote only; the stakes change rescores every tip in that database for the run).
 
 import { randomUUID } from "node:crypto";
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:4321";
 const { SUPABASE_URL, SUPABASE_KEY, SUPABASE_SERVICE_ROLE_KEY } = process.env;
 const requireAdmin = process.env.SMOKE_REQUIRE_ADMIN === "1";
+const allowRemote = process.env.SMOKE_ALLOW_REMOTE === "1";
+const localSupabase = /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?\/?$/.test(SUPABASE_URL ?? "");
 const stamp = Date.now();
 const email = `smoke-${stamp}@example.com`;
 const organizerEmail = `smoke-organizer-${stamp}@example.com`;
@@ -791,12 +794,14 @@ const organizerSteps = [
         restoreFailure = { status: 0, location: "no remembered stakes to restore" };
       }
       // Both smoke matches first (their tips cascade), then both smoke accounts (their profiles cascade).
+      // A failed delete does not stop the rest; the first failure is reported.
+      let deleteFailure = null;
       for (const sideA of [match.side_a, pastMatch.side_a]) {
         const removed = await supabase(`/rest/v1/matches?side_a=eq.${encodeURIComponent(sideA)}`, {
           method: "DELETE",
           key: SUPABASE_SERVICE_ROLE_KEY,
         });
-        if (removed.status < 200 || removed.status >= 300) return removed;
+        if (removed.status < 200 || removed.status >= 300) deleteFailure ??= removed;
       }
       const employee = await apiSession(email);
       for (const id of [organizerId, employee.userId].filter(Boolean)) {
@@ -804,9 +809,9 @@ const organizerSteps = [
           method: "DELETE",
           key: SUPABASE_SERVICE_ROLE_KEY,
         });
-        if (result.status !== 200) return result;
+        if (result.status !== 200) deleteFailure ??= result;
       }
-      return restoreFailure ?? { status: 200, location: "" };
+      return restoreFailure ?? deleteFailure ?? { status: 200, location: "" };
     },
     { status: 200 },
   ],
@@ -850,7 +855,12 @@ async function run(list) {
 
 await run(steps);
 
-if (SUPABASE_URL && SUPABASE_KEY && SUPABASE_SERVICE_ROLE_KEY) {
+if (SUPABASE_URL && SUPABASE_KEY && SUPABASE_SERVICE_ROLE_KEY && !localSupabase && !allowRemote) {
+  for (const [name] of organizerSteps) {
+    console.log(`FAIL  ${name}  -> refusing non-local SUPABASE_URL; set SMOKE_ALLOW_REMOTE=1 for a non-production one`);
+  }
+  failed += organizerSteps.length;
+} else if (SUPABASE_URL && SUPABASE_KEY && SUPABASE_SERVICE_ROLE_KEY) {
   await run(organizerSteps);
 } else {
   const verdict = requireAdmin ? "FAIL" : "SKIP";

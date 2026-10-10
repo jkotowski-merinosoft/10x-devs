@@ -205,12 +205,13 @@ It needs a reachable Supabase instance (local or cloud) with email confirmation 
 
 The organizer steps (admin creates an organizer account, the organizer adds a match, the employee sees it, tips and their visibility, the organizer enters, corrects and clears a result and the points and standings follow it and the stakes, and RLS rejects direct writes by the employee) need extra shell variables. The full list of steps is in `CLAUDE.md` § Verification. They are used only by the script — never put the service role key in `.env` or `.dev.vars`:
 
-| Variable                    | Description                                                       |
-| --------------------------- | ----------------------------------------------------------------- |
-| `SUPABASE_URL`              | Supabase API URL (`API_URL` from `npx supabase status -o env`)    |
-| `SUPABASE_KEY`              | anon key (`ANON_KEY`)                                             |
-| `SUPABASE_SERVICE_ROLE_KEY` | service role key (`SERVICE_ROLE_KEY`)                             |
-| `SMOKE_REQUIRE_ADMIN`       | `1` turns missing keys into `FAIL` instead of `SKIP` (CI uses it) |
+| Variable                    | Description                                                                                               |
+| --------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `SUPABASE_URL`              | Supabase API URL (`API_URL` from `npx supabase status -o env`)                                            |
+| `SUPABASE_KEY`              | anon key (`ANON_KEY`)                                                                                     |
+| `SUPABASE_SERVICE_ROLE_KEY` | service role key (`SERVICE_ROLE_KEY`)                                                                     |
+| `SMOKE_REQUIRE_ADMIN`       | `1` turns missing keys into `FAIL` instead of `SKIP` (CI uses it)                                         |
+| `SMOKE_ALLOW_REMOTE`        | `1` lets organizer steps run against a non-local `SUPABASE_URL` (never production); otherwise they `FAIL` |
 
 ```bash
 eval "$(npx supabase status -o env | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=')"
