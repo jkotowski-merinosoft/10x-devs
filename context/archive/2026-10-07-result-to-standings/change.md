@@ -1,9 +1,10 @@
 ---
 change_id: result-to-standings
 title: Wynik meczu aktualizuje punkty i klasyfikację
-status: impl_reviewed
+status: archived
 created: 2026-10-07
 updated: 2026-10-10
+archived_at: 2026-10-10T21:07:05Z
 ---
 
 ## Notes
