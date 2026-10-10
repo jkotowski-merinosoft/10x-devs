@@ -70,12 +70,8 @@ export const POST: APIRoute = async (context) => {
   if (wantsJson) {
     // The caller's own tip, already rescored by the DB trigger; null if they did not tip this match.
     const user = context.locals.user;
-    const { data: tip, error: tipError } = user
-      ? await getOwnTip(supabase, user.id, match.id)
-      : { data: null, error: null };
-    if (tipError) {
-      return Response.json({ error: tipError }, { status: 500 });
-    }
+    // The result is already saved, so a failed tip read (logged by the service, data null) is not an error here.
+    const { data: tip } = user ? await getOwnTip(supabase, user.id, match.id) : { data: null };
     return Response.json({ match: saved, tip });
   }
   return context.redirect(`/matches/${match.id}`);

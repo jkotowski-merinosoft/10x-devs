@@ -62,7 +62,7 @@ export async function setMatchResult(
   id: number,
   result: MatchResultInput | null,
 ): Promise<{ data: Match | null; error: string | null }> {
-  // RLS lets only an organizer update, and only after kick-off; otherwise zero rows come back and .single() fails.
+  // RLS lets only an organizer update (the kick-off rule is canEnterResult() in the endpoint); otherwise zero rows come back and .single() fails.
   const { data, error } = await supabase
     .from("matches")
     .update({ score_a: result?.score_a ?? null, score_b: result?.score_b ?? null })
